@@ -1,9 +1,13 @@
 ---
 title: Docker部署gitlab
 categories:
-  - 博客
+- 博客
 abbrlink: e32bdacf
 ---
+> Mac环境本地搭建Gitlab进行测试
+
+<!-- more -->
+
 - [1.环境准备](#1环境准备)
   - [1.1 拉取最新容器](#11-拉取最新容器)
   - [1.2 构建容器](#12-构建容器)
@@ -13,8 +17,7 @@ abbrlink: e32bdacf
 - [2. 配置Gitlab访问地址](#2-配置gitlab访问地址)
 - [3. 访问服务](#3-访问服务)
 - [4. mac访问宿主机网络](#4-mac访问宿主机网络)
-- [5. mac访问宿主机服务](#5-mac访问宿主机服务)
-<!-- more -->
+
 ## 1.环境准备
 ### 1.1 拉取最新容器
 ```
@@ -41,10 +44,9 @@ docker ps -a | grep gitlab
 ```
 ## 2. 配置Gitlab访问地址
 ```
-## step1: 进入容器
-## step2: vim /etc/gitlab/gitlab.rb
-## 修改 external_url
-## step3: 重启容器
+# step1: 进入容器
+# step2: vim /etc/gitlab/gitlab.rb 修改 external_url
+# step3: 重启容器
 ```
 ## 3. 访问服务
 ```
@@ -52,7 +54,9 @@ docker ps -a | grep gitlab
 ## 管理员默认密码 /etc/gitlab/initial_root_password
 ```
 ## 4. mac访问宿主机网络
-> container中使用docker.for.mac.localhost访问宿主机
-## 5. mac访问宿主机服务
-> Menu => Admin => Settings => Network => Outbound requests
-> 勾选[x]Allow requests to the local network from web hooks and services
+```
+# step1: 使用Gitlab管理员账号修改如下配置
+Menu => Admin => Settings => Network => Outbound requests
+勾选Allow requests to the local network from web hooks and services
+# step2: container中使用docker.for.mac.localhost访问宿主机
+```
