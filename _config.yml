@@ -107,4 +107,6 @@ theme: next
 # Deployment
 ## Docs: https://hexo.io/docs/one-command-deployment
 deploy:
-  type: ''
+  type: 'git'
+  repository: 'git@github.com:zhousicong/zhousicong.github.io.git'
+  branch: 'gh-page'
