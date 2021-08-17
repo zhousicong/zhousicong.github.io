@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title>Docker部署gitlab</title>
+    <url>/posts/e32bdacf/</url>
+    <content><![CDATA[<blockquote>
+<p>Mac环境本地搭建Gitlab进行测试</p>
+</blockquote>
+<span id="more"></span>
+
+<ul>
+<li><a href="#1%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87">1.环境准备</a><ul>
+<li><a href="#11-%E6%8B%89%E5%8F%96%E6%9C%80%E6%96%B0%E5%AE%B9%E5%99%A8">1.1 拉取最新容器</a></li>
+<li><a href="#12-%E6%9E%84%E5%BB%BA%E5%AE%B9%E5%99%A8">1.2 构建容器</a><ul>
+<li><a href="#121-%E5%88%9B%E5%BB%BA%E7%9B%AE%E5%BD%95%E7%94%A8%E4%BA%8E%E6%95%B0%E6%8D%AE%E6%8C%81%E4%B9%85%E5%8C%96">1.2.1 创建目录，用于数据持久化</a></li>
+<li><a href="#122-%E6%9E%84%E5%BB%BA%E5%AE%B9%E5%99%A8">1.2.2 构建容器</a></li>
+<li><a href="#123-%E6%9F%A5%E7%9C%8B%E5%AE%B9%E5%99%A8">1.2.3 查看容器</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#2-%E9%85%8D%E7%BD%AEgitlab%E8%AE%BF%E9%97%AE%E5%9C%B0%E5%9D%80">2. 配置Gitlab访问地址</a></li>
+<li><a href="#3-%E8%AE%BF%E9%97%AE%E6%9C%8D%E5%8A%A1">3. 访问服务</a></li>
+<li><a href="#4-mac%E8%AE%BF%E9%97%AE%E5%AE%BF%E4%B8%BB%E6%9C%BA%E7%BD%91%E7%BB%9C">4. mac访问宿主机网络</a></li>
+</ul>
+<h2 id="1-环境准备"><a href="#1-环境准备" class="headerlink" title="1.环境准备"></a>1.环境准备</h2><h3 id="1-1-拉取最新容器"><a href="#1-1-拉取最新容器" class="headerlink" title="1.1 拉取最新容器"></a>1.1 拉取最新容器</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker pull gitlab/gitlab-ce:latest</span><br></pre></td></tr></table></figure>
+<h3 id="1-2-构建容器"><a href="#1-2-构建容器" class="headerlink" title="1.2 构建容器"></a>1.2 构建容器</h3><h4 id="1-2-1-创建目录，用于数据持久化"><a href="#1-2-1-创建目录，用于数据持久化" class="headerlink" title="1.2.1 创建目录，用于数据持久化"></a>1.2.1 创建目录，用于数据持久化</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mkdir -p $&#123;gitlab-home&#125;/&#123;data,config,logs&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="1-2-2-构建容器"><a href="#1-2-2-构建容器" class="headerlink" title="1.2.2 构建容器"></a>1.2.2 构建容器</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker run -dit \</span><br><span class="line">-p 443:443 -p 80:80 -p 222:22 \</span><br><span class="line">--name gitlab --restart always \</span><br><span class="line">-v $&#123;gitlab-home&#125;/config:/etc/gitlab \</span><br><span class="line">-v $&#123;gitlab-home&#125;/logs:/var/log/gitlab \</span><br><span class="line">-v $&#123;gitlab-home&#125;/data:/var/opt/gitlab \</span><br><span class="line">gitlab/gitlab-ce</span><br></pre></td></tr></table></figure>
+<h4 id="1-2-3-查看容器"><a href="#1-2-3-查看容器" class="headerlink" title="1.2.3 查看容器"></a>1.2.3 查看容器</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker ps -a | grep gitlab</span><br></pre></td></tr></table></figure>
+<h2 id="2-配置Gitlab访问地址"><a href="#2-配置Gitlab访问地址" class="headerlink" title="2. 配置Gitlab访问地址"></a>2. 配置Gitlab访问地址</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># step1: 进入容器</span><br><span class="line"># step2: vim /etc/gitlab/gitlab.rb 修改 external_url</span><br><span class="line"># step3: 重启容器</span><br></pre></td></tr></table></figure>
+<h2 id="3-访问服务"><a href="#3-访问服务" class="headerlink" title="3. 访问服务"></a>3. 访问服务</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">## 管理员默认用户 root</span><br><span class="line">## 管理员默认密码 /etc/gitlab/initial_root_password</span><br></pre></td></tr></table></figure>
+<h2 id="4-mac访问宿主机网络"><a href="#4-mac访问宿主机网络" class="headerlink" title="4. mac访问宿主机网络"></a>4. mac访问宿主机网络</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># step1: 使用Gitlab管理员账号修改如下配置</span><br><span class="line">Menu =&gt; Admin =&gt; Settings =&gt; Network =&gt; Outbound requests</span><br><span class="line">勾选Allow requests to the local network from web hooks and services</span><br><span class="line"># step2: container中使用docker.for.mac.localhost访问宿主机</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>博客</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Work Environment setup</title>
+    <url>/posts/27b637df/</url>
+    <content><![CDATA[<blockquote>
+<p>用于工作环境的搭建</p>
+</blockquote>
+<span id="more"></span>
+
+<h3 id="Mac-App"><a href="#Mac-App" class="headerlink" title="Mac App"></a>Mac App</h3><ul>
+<li>InsomniaX for Mac (Disable the sleep mode on your Mac)</li>
+<li>Karabiner-Elements (改建利器)</li>
+<li>Alfred</li>
+<li>Spectacle (分屏软件)</li>
+<li>dozer (系统栏图标隐藏工具)</li>
+<li>Itsycal (日历)</li>
+<li>Hammerspoon</li>
+<li>PicGo</li>
+<li>kubectx</li>
+</ul>
+<h3 id="vim-conf"><a href="#vim-conf" class="headerlink" title="vim.conf"></a>vim.conf</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&quot; 语法高亮</span><br><span class="line">syntax enable</span><br><span class="line">syntax on</span><br><span class="line">&quot; 编码设置</span><br><span class="line">set encoding=utf-8</span><br><span class="line">&quot; 显示匹配</span><br><span class="line">set showmatch</span><br><span class="line">&quot; 显示标尺</span><br><span class="line">set ruler</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">set backspace=indent,eol,start</span><br><span class="line"></span><br><span class="line">call plug#begin(&#x27;~/.vim/plugged&#x27;)</span><br><span class="line">Plug &#x27;Yggdroot/indentLine&#x27;</span><br><span class="line">Plug &#x27;ayu-theme/ayu-vim&#x27;</span><br><span class="line">call plug#end()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&quot; indentLine &#123;&#123;</span><br><span class="line">let g:indentLine_char = &#x27;┆&#x27;</span><br><span class="line">&quot; &#125;&#125;</span><br><span class="line">&quot; ayu-vim &#123;&#123;</span><br><span class="line">set termguicolors</span><br><span class="line">let ayucolor=&quot;dark&quot;</span><br><span class="line">colorscheme ayu</span><br><span class="line">&quot; &#125;&#125;</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>博客</category>
+      </categories>
+  </entry>
+</search>
