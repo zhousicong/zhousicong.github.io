@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Noto+Serif+SC:300,300italic,400,400italic,700,700italic%7CLobster+Two:300,300italic,400,400italic,700,700italic%7CRoboto+Slab:300,300italic,400,400italic,700,700italic%7CSource+Code+Pro:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.css" integrity="sha256-no0c5ccDODBwp+9hSmV5VvPpKwHCpbVzXHexIkupM6U=" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.js" integrity="sha256-a5YRB27CcBwBFcT5EF/f3E4vzIqyHrSR878nseNYw64=" crossorigin="anonymous"></script>
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Mist","version":"8.7.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<meta name="description" content="对CEPH S3的bucket容量监控,依赖于rados-admin命令的执行">
+<meta property="og:type" content="article">
+<meta property="og:title" content="s3-exporter实现">
+<meta property="og:url" content="http://example.com/posts/f7f721f2/index.html">
+<meta property="og:site_name" content="Vincent&#39;s Blog">
+<meta property="og:description" content="对CEPH S3的bucket容量监控,依赖于rados-admin命令的执行">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-08-17T07:27:14.000Z">
+<meta property="article:modified_time" content="2021-08-17T07:30:37.040Z">
+<meta property="article:author" content="Vincent Zhou">
+<meta property="article:tag" content="监控">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/posts/f7f721f2/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/posts/f7f721f2/","path":"posts/f7f721f2/","title":"s3-exporter实现"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>s3-exporter实现 | Vincent's Blog</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Vincent's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-overview-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-overview">
+            <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Vincent Zhou"
+      src="/images/panda.jpg">
+  <p class="site-author-name" itemprop="name">Vincent Zhou</p>
+  <div class="site-description" itemprop="description">Talk less Do more</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">5</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/posts/f7f721f2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/panda.jpg">
+      <meta itemprop="name" content="Vincent Zhou">
+      <meta itemprop="description" content="Talk less Do more">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Vincent's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          s3-exporter实现
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CEPH/" itemprop="url" rel="index"><span itemprop="name">CEPH</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CEPH/S3/" itemprop="url" rel="index"><span itemprop="name">S3</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <blockquote>
+<p>对CEPH S3的bucket容量监控,依赖于rados-admin命令的执行</p>
+</blockquote>
+<span id="more"></span>
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br></pre></td><td class="code"><pre><span class="line"> <span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;context&quot;</span></span><br><span class="line">	<span class="string">&quot;encoding/json&quot;</span></span><br><span class="line">	<span class="string">&quot;flag&quot;</span></span><br><span class="line">	<span class="string">&quot;fmt&quot;</span></span><br><span class="line">	<span class="string">&quot;log&quot;</span></span><br><span class="line">	<span class="string">&quot;net/http&quot;</span></span><br><span class="line">	<span class="string">&quot;os/exec&quot;</span></span><br><span class="line">	<span class="string">&quot;strconv&quot;</span></span><br><span class="line">	<span class="string">&quot;sync&quot;</span></span><br><span class="line">	<span class="string">&quot;time&quot;</span></span><br><span class="line"></span><br><span class="line">	<span class="string">&quot;github.com/prometheus/client_golang/prometheus&quot;</span></span><br><span class="line">	<span class="string">&quot;github.com/prometheus/client_golang/prometheus/promhttp&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> (</span><br><span class="line">	rootDir <span class="keyword">string</span></span><br><span class="line">	depth   <span class="keyword">int</span></span><br><span class="line">	port    <span class="keyword">int</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> BucketUsage <span class="keyword">struct</span> &#123;</span><br><span class="line">	Bucket <span class="keyword">string</span> <span class="string">`json:&quot;bucket&quot;`</span></span><br><span class="line">	Owner  <span class="keyword">string</span> <span class="string">`json:&quot;owner&quot;`</span></span><br><span class="line">	Usage  <span class="keyword">struct</span> &#123;</span><br><span class="line">		RGWMain <span class="keyword">struct</span> &#123;</span><br><span class="line">			Size         <span class="keyword">float64</span> <span class="string">`json:&quot;size&quot;`</span></span><br><span class="line">			SizeActual   <span class="keyword">float64</span> <span class="string">`json:&quot;size_actual&quot;`</span></span><br><span class="line">			SizeUtilized <span class="keyword">float64</span> <span class="string">`json:&quot;size_utilized&quot;`</span></span><br><span class="line">			NumObjects   <span class="keyword">float64</span> <span class="string">`json:&quot;num_objects&quot;`</span></span><br><span class="line">		&#125; <span class="string">`json:&quot;rgw.main&quot;`</span></span><br><span class="line">	&#125; <span class="string">`json:&quot;usage&quot;`</span></span><br><span class="line">	BucketQuota <span class="keyword">struct</span> &#123;</span><br><span class="line">		Enable     <span class="keyword">bool</span>    <span class="string">`json:&quot;enabled&quot;`</span></span><br><span class="line">		MaxSize    <span class="keyword">float64</span> <span class="string">`json:&quot;max_size&quot;`</span></span><br><span class="line">		MaxSizeKB  <span class="keyword">float64</span> <span class="string">`json:&quot;max_size_kb&quot;`</span></span><br><span class="line">		MaxObjects <span class="keyword">float64</span> <span class="string">`json:&quot;max_objects&quot;`</span></span><br><span class="line">	&#125; <span class="string">`json:&quot;bucket_quota&quot;`</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> namespace <span class="keyword">string</span> = <span class="string">&quot;unionstor_radosgw_usage&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> Collector <span class="keyword">struct</span> &#123;</span><br><span class="line">	mu                      sync.Mutex</span><br><span class="line">	BucketSizeBytes         *prometheus.GaugeVec</span><br><span class="line">	BucketSizeUtilizedBytes *prometheus.GaugeVec</span><br><span class="line">	BucketNumsObjects       *prometheus.GaugeVec</span><br><span class="line">	BucketQuotaEnable       *prometheus.GaugeVec</span><br><span class="line">	BucketQuotaMaxSize      *prometheus.GaugeVec</span><br><span class="line">	BucketQuotaMaxSizeBytes *prometheus.GaugeVec</span><br><span class="line">	BucketQuotaMaxObjects   *prometheus.GaugeVec</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">exec_cmd</span><span class="params">(command <span class="keyword">string</span>, timeout <span class="keyword">int</span>)</span> <span class="params">([]<span class="keyword">byte</span>, error)</span></span> &#123;</span><br><span class="line">	ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(timeout))</span><br><span class="line">	<span class="keyword">defer</span> cancel()</span><br><span class="line"></span><br><span class="line">	cmd := exec.CommandContext(ctx, <span class="string">&quot;bash&quot;</span>, <span class="string">&quot;-c&quot;</span>, command)</span><br><span class="line">	out, err := cmd.CombinedOutput()</span><br><span class="line">	<span class="keyword">return</span> out, err</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewCollector</span><span class="params">()</span> *<span class="title">Collector</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> &amp;Collector&#123;</span><br><span class="line">		BucketSizeBytes: prometheus.NewGaugeVec(prometheus.GaugeOpts&#123;</span><br><span class="line">			Namespace: namespace,</span><br><span class="line">			Name:      <span class="string">&quot;bucket_size_bytes&quot;</span>,</span><br><span class="line">			Help:      <span class="string">&quot;bucket_size_bytes&quot;</span>,</span><br><span class="line">		&#125;, []<span class="keyword">string</span>&#123;<span class="string">&quot;bucket&quot;</span>, <span class="string">&quot;owner&quot;</span>&#125;),</span><br><span class="line">		BucketSizeUtilizedBytes: prometheus.NewGaugeVec(prometheus.GaugeOpts&#123;</span><br><span class="line">			Namespace: namespace,</span><br><span class="line">			Name:      <span class="string">&quot;bucket_size_utilized_bytes&quot;</span>,</span><br><span class="line">			Help:      <span class="string">&quot;bucket_size_utilized_bytes&quot;</span>,</span><br><span class="line">		&#125;, []<span class="keyword">string</span>&#123;<span class="string">&quot;bucket&quot;</span>, <span class="string">&quot;owner&quot;</span>&#125;),</span><br><span class="line">		BucketNumsObjects: prometheus.NewGaugeVec(prometheus.GaugeOpts&#123;</span><br><span class="line">			Namespace: namespace,</span><br><span class="line">			Name:      <span class="string">&quot;bucket_num_objects&quot;</span>,</span><br><span class="line">			Help:      <span class="string">&quot;bucket_num_objects&quot;</span>,</span><br><span class="line">		&#125;, []<span class="keyword">string</span>&#123;<span class="string">&quot;bucket&quot;</span>, <span class="string">&quot;owner&quot;</span>&#125;),</span><br><span class="line">		BucketQuotaEnable: prometheus.NewGaugeVec(prometheus.GaugeOpts&#123;</span><br><span class="line">			Namespace: namespace,</span><br><span class="line">			Name:      <span class="string">&quot;bucket_quota_enable&quot;</span>,</span><br><span class="line">			Help:      <span class="string">&quot;bucket_quota_enable&quot;</span>,</span><br><span class="line">		&#125;, []<span class="keyword">string</span>&#123;<span class="string">&quot;bucket&quot;</span>, <span class="string">&quot;owner&quot;</span>&#125;),</span><br><span class="line">		BucketQuotaMaxSize: prometheus.NewGaugeVec(prometheus.GaugeOpts&#123;</span><br><span class="line">			Namespace: namespace,</span><br><span class="line">			Name:      <span class="string">&quot;bucket_quota_max_size&quot;</span>,</span><br><span class="line">			Help:      <span class="string">&quot;bucket_quota_max_size&quot;</span>,</span><br><span class="line">		&#125;, []<span class="keyword">string</span>&#123;<span class="string">&quot;bucket&quot;</span>, <span class="string">&quot;owner&quot;</span>&#125;),</span><br><span class="line">		BucketQuotaMaxSizeBytes: prometheus.NewGaugeVec(prometheus.GaugeOpts&#123;</span><br><span class="line">			Namespace: namespace,</span><br><span class="line">			Name:      <span class="string">&quot;bucket_quota_max_size_bytes&quot;</span>,</span><br><span class="line">			Help:      <span class="string">&quot;bucket_quota_max_size_bytes&quot;</span>,</span><br><span class="line">		&#125;, []<span class="keyword">string</span>&#123;<span class="string">&quot;bucket&quot;</span>, <span class="string">&quot;owner&quot;</span>&#125;),</span><br><span class="line">		BucketQuotaMaxObjects: prometheus.NewGaugeVec(prometheus.GaugeOpts&#123;</span><br><span class="line">			Namespace: namespace,</span><br><span class="line">			Name:      <span class="string">&quot;bucket_quota_max_objects&quot;</span>,</span><br><span class="line">			Help:      <span class="string">&quot;bucket_quota_max_objects&quot;</span>,</span><br><span class="line">		&#125;, []<span class="keyword">string</span>&#123;<span class="string">&quot;bucket&quot;</span>, <span class="string">&quot;owner&quot;</span>&#125;),</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Collector)</span> <span class="title">collectorList</span><span class="params">()</span> []<span class="title">prometheus</span>.<span class="title">Collector</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> []prometheus.Collector&#123;</span><br><span class="line">		c.BucketSizeBytes,</span><br><span class="line">		c.BucketSizeUtilizedBytes,</span><br><span class="line">		c.BucketNumsObjects,</span><br><span class="line">		c.BucketQuotaEnable,</span><br><span class="line">		c.BucketQuotaMaxSize,</span><br><span class="line">		c.BucketQuotaMaxSizeBytes,</span><br><span class="line">		c.BucketQuotaMaxObjects,</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Collector)</span> <span class="title">Describe</span><span class="params">(ch <span class="keyword">chan</span>&lt;- *prometheus.Desc)</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> _, metric := <span class="keyword">range</span> c.collectorList() &#123;</span><br><span class="line">		metric.Describe(ch)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Collector)</span> <span class="title">Collect</span><span class="params">(ch <span class="keyword">chan</span>&lt;- prometheus.Metric)</span></span> &#123;</span><br><span class="line">	c.mu.Lock()</span><br><span class="line">	<span class="keyword">defer</span> c.mu.Unlock()</span><br><span class="line">	<span class="keyword">if</span> err := c.collect(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Println(err.Error())</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> _, metric := <span class="keyword">range</span> c.collectorList() &#123;</span><br><span class="line">		metric.Collect(ch)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Collector)</span> <span class="title">collect</span><span class="params">()</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	cmd := <span class="string">&quot;radosgw-admin bucket stats&quot;</span></span><br><span class="line">	cmdRet, err := exec_cmd(cmd, <span class="number">30</span>)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		fmt.Println(<span class="string">&quot;exec bucket stats error:&quot;</span>, err)</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	bucketsUsage := []BucketUsage&#123;&#125;</span><br><span class="line">	err = json.Unmarshal(cmdRet, &amp;bucketsUsage)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		fmt.Println(<span class="string">&quot;parse cmd returen error:&quot;</span>, err)</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	c.BucketSizeBytes.Reset()</span><br><span class="line">	c.BucketSizeUtilizedBytes.Reset()</span><br><span class="line">	c.BucketNumsObjects.Reset()</span><br><span class="line">	c.BucketQuotaEnable.Reset()</span><br><span class="line">	c.BucketQuotaMaxSize.Reset()</span><br><span class="line">	c.BucketQuotaMaxSizeBytes.Reset()</span><br><span class="line">	c.BucketQuotaMaxObjects.Reset()</span><br><span class="line">	<span class="keyword">for</span> _, bucketUsage := <span class="keyword">range</span> bucketsUsage &#123;</span><br><span class="line">		bucketName := bucketUsage.Bucket</span><br><span class="line">		bucketOwner := bucketUsage.Owner</span><br><span class="line">		bucketSizeBytes := bucketUsage.Usage.RGWMain.SizeActual</span><br><span class="line">		bucketSizeUtilizedBytes := bucketUsage.Usage.RGWMain.SizeUtilized</span><br><span class="line">		bucketObjects := bucketUsage.Usage.RGWMain.NumObjects</span><br><span class="line">		<span class="keyword">var</span> bucketQuotaEnable <span class="keyword">float64</span> = <span class="number">0</span></span><br><span class="line">		<span class="keyword">if</span> bucketUsage.BucketQuota.Enable &#123;</span><br><span class="line">			bucketQuotaEnable = <span class="number">1</span></span><br><span class="line">		&#125;</span><br><span class="line">		bucketQuotaMaxSize := bucketUsage.BucketQuota.MaxSize</span><br><span class="line">		bucketQuotaMaxSizeBytes := bucketUsage.BucketQuota.MaxSizeKB</span><br><span class="line">		bucketQuotaMaxObjects := bucketUsage.BucketQuota.MaxObjects</span><br><span class="line">		c.BucketSizeBytes.WithLabelValues(bucketName, bucketOwner).Set(bucketSizeBytes)</span><br><span class="line">		c.BucketSizeUtilizedBytes.WithLabelValues(bucketName, bucketOwner).Set(bucketSizeUtilizedBytes)</span><br><span class="line">		c.BucketNumsObjects.WithLabelValues(bucketName, bucketOwner).Set(bucketObjects)</span><br><span class="line">		c.BucketQuotaEnable.WithLabelValues(bucketName, bucketOwner).Set(bucketQuotaEnable)</span><br><span class="line">		c.BucketQuotaMaxSize.WithLabelValues(bucketName, bucketOwner).Set(bucketQuotaMaxSize)</span><br><span class="line">		c.BucketQuotaMaxSizeBytes.WithLabelValues(bucketName, bucketOwner).Set(bucketQuotaMaxSizeBytes)</span><br><span class="line">		c.BucketQuotaMaxObjects.WithLabelValues(bucketName, bucketOwner).Set(bucketQuotaMaxObjects)</span><br><span class="line"></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	flag.StringVar(&amp;rootDir, <span class="string">&quot;path&quot;</span>, <span class="string">&quot;/&quot;</span>, <span class="string">&quot;A cephfs path&quot;</span>)</span><br><span class="line">	flag.IntVar(&amp;depth, <span class="string">&quot;depth&quot;</span>, <span class="number">2</span>, <span class="string">&quot;default depth&quot;</span>)</span><br><span class="line">	flag.IntVar(&amp;port, <span class="string">&quot;port&quot;</span>, <span class="number">8080</span>, <span class="string">&quot;default exporter port&quot;</span>)</span><br><span class="line">	flag.Parse()</span><br><span class="line">	prometheus.MustRegister(NewCollector())</span><br><span class="line">	http.Handle(<span class="string">&quot;/metrics&quot;</span>, promhttp.Handler())</span><br><span class="line">	log.Fatal(http.ListenAndServe(<span class="string">&quot;:&quot;</span>+strconv.Itoa(port), <span class="literal">nil</span>))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%9B%91%E6%8E%A7/" rel="tag"># 监控</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/posts/bab85c8a/" rel="prev" title="CEPH客户端版本升级">
+                  <i class="fa fa-chevron-left"></i> CEPH客户端版本升级
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/posts/612a1ead/" rel="next" title="argo-combined-demo">
+                  argo-combined-demo <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Vincent Zhou</span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+  <script class="next-config" data-name="nprogress" type="application/json">{"enable":true,"spinner":true}</script>
+  <script src="/js/third-party/nprogress.js"></script>
+
+  
+
+
+
+
+
+</body>
+</html>
