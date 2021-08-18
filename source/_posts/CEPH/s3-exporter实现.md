@@ -1,6 +1,6 @@
 ---
 title: s3-exporter实现
-description: 对CEPH S3的bucket容量监控,依赖于rados-admin命令的执行
+description: '对CEPH S3的bucket容量监控,依赖于rados-admin命令的执行'
 categories:
   - CEPH
   - S3

@@ -1,10 +1,10 @@
 ---
 title: SHELL参数的含义
 abbrlink: 1b4c4aa3
-date: 2021-08-18 16:29:38
 description: shell脚本入参含义
 categories:
-- SHELL
+  - SHELL
+date: 2021-08-18 16:29:38
 tags:
 ---
 - $0
