@@ -1,13 +1,10 @@
 ---
 title: Docker部署gitlab
+description: Mac环境本地搭建Gitlab进行测试
 categories:
 - 博客
 abbrlink: e32bdacf
 ---
-> Mac环境本地搭建Gitlab进行测试
-
-<!-- more -->
-
 - [1.环境准备](#1环境准备)
   - [1.1 拉取最新容器](#11-拉取最新容器)
   - [1.2 构建容器](#12-构建容器)

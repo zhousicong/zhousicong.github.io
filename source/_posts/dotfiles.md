@@ -1,13 +1,10 @@
 ---
 title: Work Environment setup
+description: 用于工作环境的搭建
 categories:
   - 博客
 abbrlink: 27b637df
 ---
-> 用于工作环境的搭建
-
-<!-- more -->
-
 ### Mac App
 - InsomniaX for Mac (Disable the sleep mode on your Mac)
 - Karabiner-Elements (改建利器)
