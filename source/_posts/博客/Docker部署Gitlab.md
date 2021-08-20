@@ -28,7 +28,9 @@ mkdir -p ${gitlab-home}/{data,config,logs}
 #### 1.2.2 构建容器
 ```
 docker run -dit \
--p 443:443 -p 80:80 -p 222:22 \
+-p 443:443 \
+-p 80:80 \
+-p 22:22 \
 --name gitlab --restart always \
 -v ${gitlab-home}/config:/etc/gitlab \
 -v ${gitlab-home}/logs:/var/log/gitlab \
@@ -57,3 +59,4 @@ Menu => Admin => Settings => Network => Outbound requests
 勾选Allow requests to the local network from web hooks and services
 # step2: container中使用docker.for.mac.localhost访问宿主机
 ```
+![etwork-setting](https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202108191541954.png)

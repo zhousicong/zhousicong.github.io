@@ -23,12 +23,15 @@ date: 2021-08-17 15:43:43
 
 ## 部署argo workflow
 > 云原生工作流引擎，专注于任务编排
+
+latest安装浏览器访问报错 [相关issue](https://github.com/argoproj/argo-workflows/issues/5573)
 ```shell
 # 在argo-events namespace中创建argo workflow服务
 kubectl create ns argo-events
 # 下载argo-workflow资源文件
+wget https://github.com/argoproj/argo-workflows/releases/download/v3.1.6/quick-start-postgres.yaml
 # 修改资源文件中RoleBinding和ClusterRoleBinding的namespace argo为argo-events
-wget https://raw.githubusercontent.com/argoproj/argo-workflows/master/manifests/quick-start-postgres.yaml
+# apply 资源文件
 kubectl apply -n argo-events -f quick-start-postgres.yaml
 ```
 ## 部署argo events
