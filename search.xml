@@ -314,6 +314,29 @@
       </categories>
   </entry>
   <entry>
+    <title>K8S|Secret详解</title>
+    <url>/posts/5a8a6c8d/</url>
+    <content><![CDATA[<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>Secret解决了密码、token、秘钥等敏感数据的配置问题，而不需要把这些敏感数据暴露到镜像或者Pod Spec中。Secret可以以Volume或者环境变量的方式使用。</p>
+<h2 id="Secret类型"><a href="#Secret类型" class="headerlink" title="Secret类型"></a>Secret类型</h2><ul>
+<li>Service Account：用来访问Kubernetes API，由Kubernetes自动创建，并且会自动挂载到Pod的 /run/secrets/kubernetes.io/serviceaccount 目录中。</li>
+<li>Opaque：base64编码格式的Secret，用来存储密码、秘钥等。</li>
+<li>kubernetes.io/dockerconfigjson：用来存储私有docker registry的认证信息。<blockquote>
+<p>本文主要使用Opaque</p>
+</blockquote>
+</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 命令行直接创建</span></span><br><span class="line">kubectl create secret generic my-secret --from-literal=username=root --from-literal=password=root</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 使用文件创建</span></span><br><span class="line">echo -n &quot;root&quot; &gt; ./username</span><br><span class="line">echo -n &quot;root&quot; &gt; ./password</span><br><span class="line">kubectl create secret generic my-secret --from-file=./username --from-file=./password</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 先对字符串进行base64加密</span></span><br><span class="line">echo -n &#x27;root&#x27; | base64</span><br><span class="line">cm9vdA==</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 编辑资源文件</span></span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Secret</span><br><span class="line">metadata:</span><br><span class="line">  name: my-secret</span><br><span class="line">type: Opaque</span><br><span class="line">data:</span><br><span class="line">  username: base64</span><br><span class="line">  password: base64</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 解密</span></span><br><span class="line">kubectl get secrets my-secret -o jsonpath=&quot;&#123;.data.username&#125;&quot; | base64 -d</span><br><span class="line">root</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>K8S</category>
+        <category>Secret</category>
+      </categories>
+      <tags>
+        <tag>K8S</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>kubectl|patch命令使用</title>
     <url>/posts/e6afd30a/</url>
     <content><![CDATA[<h2 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h2><p><code>kubectl patch (-f FILENAME | TYPE NAME) -p PATCH</code></p>
@@ -328,6 +351,7 @@
       </categories>
       <tags>
         <tag>kubectl命令</tag>
+        <tag>TODO</tag>
       </tags>
   </entry>
   <entry>
@@ -357,6 +381,24 @@
       <categories>
         <category>Linux命令</category>
       </categories>
+  </entry>
+  <entry>
+    <title>Linux命令|yq</title>
+    <url>/posts/e6efe92f/</url>
+    <content><![CDATA[<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>yq是一个yaml的命令行解析工具。他有点像jq处理json一样。</p>
+<blockquote>
+<p>当前版本为4.x,4版本和3版本相差很大，请注意语法。</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Usage:</span><br><span class="line">  yq [flags]</span><br><span class="line">  yq [command]</span><br><span class="line"></span><br><span class="line">Available Commands:</span><br><span class="line">  eval             Apply the expression to each document in each yaml file in sequence</span><br><span class="line">  eval-all         Loads _all_ yaml documents of _all_ yaml files and runs expression once</span><br><span class="line">  help             Help about any command</span><br><span class="line">  shell-completion Generate completion script</span><br><span class="line"></span><br><span class="line">Flags:</span><br><span class="line">  -C, --colors                force print with colors</span><br><span class="line">  -e, --exit-status           set exit status if there are no matches or null or false is returned</span><br><span class="line">  -f, --front-matter string   (extract|process) first input as yaml front-matter. Extract will pull out the yaml content, process will run the expression against the yaml content, leaving the remaining data intact</span><br><span class="line">  -h, --help                  help for yq</span><br><span class="line">  -I, --indent int            sets indent level for output (default 2)</span><br><span class="line">  -i, --inplace               update the yaml file inplace of first yaml file given.</span><br><span class="line">  -M, --no-colors             force print with no colors</span><br><span class="line">  -N, --no-doc                Don&#x27;t print document separators (---)</span><br><span class="line">  -n, --null-input            Don&#x27;t read input, simply evaluate the expression given. Useful for creating yaml docs from scratch.</span><br><span class="line">  -P, --prettyPrint           pretty print, shorthand for &#x27;... style = &quot;&quot;&#x27;</span><br><span class="line">  -j, --tojson                output as json. Set indent to 0 to print json in one line.</span><br><span class="line">      --unwrapScalar          unwrap scalar, print the value with no quotes, colors or comments (default true)</span><br><span class="line">  -v, --verbose               verbose mode</span><br><span class="line">  -V, --version               Print version information and quit</span><br><span class="line"></span><br><span class="line">Use &quot;yq [command] --help&quot; for more information about a command.</span><br></pre></td></tr></table></figure>
+
+<p><strong>//TODO 补充实例</strong></p>
+]]></content>
+      <categories>
+        <category>Linux</category>
+      </categories>
+      <tags>
+        <tag>TODO</tag>
+      </tags>
   </entry>
   <entry>
     <title>SHELL参数的含义</title>

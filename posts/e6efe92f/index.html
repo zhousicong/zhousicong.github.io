@@ -22,27 +22,28 @@
   <script src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.js" integrity="sha256-a5YRB27CcBwBFcT5EF/f3E4vzIqyHrSR878nseNYw64=" crossorigin="anonymous"></script>
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Mist","version":"8.7.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
-<meta name="description" content="JS数据类型基本类型: Number Booleam String undefined null引用类型: Object Function基本类型的数据是放在栈内存中，而引用类型的数据是放在堆内存中">
+<meta name="description" content="yaml命令行解析工具">
 <meta property="og:type" content="article">
-<meta property="og:title" content="引用类型和基本类型">
-<meta property="og:url" content="http://example.com/posts/d3b053f/index.html">
+<meta property="og:title" content="Linux命令|yq">
+<meta property="og:url" content="http://example.com/posts/e6efe92f/index.html">
 <meta property="og:site_name" content="Vincent&#39;s Blog">
-<meta property="og:description" content="JS数据类型基本类型: Number Booleam String undefined null引用类型: Object Function基本类型的数据是放在栈内存中，而引用类型的数据是放在堆内存中">
+<meta property="og:description" content="yaml命令行解析工具">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2021-08-18T09:24:25.000Z">
-<meta property="article:modified_time" content="2021-08-18T09:35:03.698Z">
+<meta property="article:published_time" content="2021-08-20T06:44:29.000Z">
+<meta property="article:modified_time" content="2021-08-20T07:26:53.264Z">
 <meta property="article:author" content="Vincent Zhou">
+<meta property="article:tag" content="TODO">
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="http://example.com/posts/d3b053f/">
+<link rel="canonical" href="http://example.com/posts/e6efe92f/">
 
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/posts/d3b053f/","path":"posts/d3b053f/","title":"引用类型和基本类型"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/posts/e6efe92f/","path":"posts/e6efe92f/","title":"Linux命令|yq"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>引用类型和基本类型 | Vincent's Blog</title>
+<title>Linux命令|yq | Vincent's Blog</title>
   
 
 
@@ -146,7 +147,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#JS%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B"><span class="nav-number">1.</span> <span class="nav-text">JS数据类型</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#JS%E4%BC%A0%E5%8F%82%E5%B7%AE%E5%88%AB-%E6%8C%89%E5%80%BC%E8%BF%98%E6%98%AF%E6%8C%89%E5%9D%80"><span class="nav-number">2.</span> <span class="nav-text">JS传参差别 按值还是按址?</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%8D%E5%88%B6%E5%8F%98%E9%87%8F"><span class="nav-number">2.1.</span> <span class="nav-text">复制变量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%87%BD%E6%95%B0%E4%BC%A0%E5%8F%82"><span class="nav-number">2.2.</span> <span class="nav-text">函数传参</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.</span> <span class="nav-text">介绍</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -214,7 +215,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/posts/d3b053f/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/posts/e6efe92f/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/panda.jpg">
@@ -227,7 +228,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          引用类型和基本类型
+          Linux命令|yq
         </h1>
 
         <div class="post-meta-container">
@@ -238,13 +239,14 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/JS/" itemprop="url" rel="index"><span itemprop="name">JS</span></a>
+          <a href="/categories/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
         </span>
     </span>
 
   
 </div>
 
+            <div class="post-description">yaml命令行解析工具</div>
         </div>
       </header>
 
@@ -252,21 +254,13 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <h1 id="JS数据类型"><a href="#JS数据类型" class="headerlink" title="JS数据类型"></a>JS数据类型</h1><p>基本类型: Number Booleam String undefined null<br>引用类型: Object Function<br>基本类型的数据是放在栈内存中，而引用类型的数据是放在堆内存中</p>
-<span id="more"></span>
-
-<h1 id="JS传参差别-按值还是按址"><a href="#JS传参差别-按值还是按址" class="headerlink" title="JS传参差别 按值还是按址?"></a>JS传参差别 按值还是按址?</h1><h2 id="复制变量"><a href="#复制变量" class="headerlink" title="复制变量"></a>复制变量</h2><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 基本类型</span></span><br><span class="line"><span class="keyword">let</span> a = <span class="number">5</span></span><br><span class="line"><span class="keyword">let</span> b = a</span><br><span class="line">b = <span class="number">10</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;a&#125;</span> | <span class="subst">$&#123;b&#125;</span>`</span>) </span><br><span class="line"></span><br><span class="line"><span class="comment">// 引用类型</span></span><br><span class="line"><span class="keyword">let</span> obj1 = <span class="keyword">new</span> <span class="built_in">Object</span>()</span><br><span class="line">obj1.num = <span class="number">5</span></span><br><span class="line"><span class="keyword">let</span> obj2 = obj1</span><br><span class="line">obj2.mum =<span class="number">10</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;obj1.mun&#125;</span> | <span class="subst">$&#123;obj2.mum&#125;</span>`</span>)</span><br></pre></td></tr></table></figure>
-<p>基础类型由于是放在栈内存中，每个变量都有自己的值，所以其中一个值改变了，不影响另外一个。<br>引用类型其实就是在栈内存中存储了一个指针，这个指针指向的是存储地址，变量复制其实就是把这个地址复制给了另外一个变量，如果其中一个将这个对象修改了，那么另外一个也会改变。</p>
-<h2 id="函数传参"><a href="#函数传参" class="headerlink" title="函数传参"></a>函数传参</h2><blockquote>
-<p>到底是按值传参还是按址传参<br>示例1:</p>
+        <h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>yq是一个yaml的命令行解析工具。他有点像jq处理json一样。</p>
+<blockquote>
+<p>当前版本为4.x,4版本和3版本相差很大，请注意语法。</p>
 </blockquote>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">add</span>(<span class="params">num</span>)</span>&#123;</span><br><span class="line">  num += <span class="number">10</span></span><br><span class="line">  <span class="keyword">return</span> num</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">let</span> count = <span class="number">10</span></span><br><span class="line"><span class="keyword">let</span> result = add(count)</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;count&#125;</span> | <span class="subst">$&#123;result&#125;</span>`</span>)</span><br><span class="line"><span class="comment">// 20 | 30</span></span><br></pre></td></tr></table></figure>
-<p>按值传递,秒懂！</p>
-<p>示例2</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">setName</span>(<span class="params">obj</span>)</span>&#123;</span><br><span class="line">  obj.name = <span class="string">&#x27;bbb&#x27;</span></span><br><span class="line">  <span class="keyword">return</span> obj</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">let</span> person = <span class="keyword">new</span> <span class="built_in">Object</span>()</span><br><span class="line">person.name = <span class="string">&#x27;aaa&#x27;</span></span><br><span class="line"><span class="keyword">let</span> newPerson = setName(person)</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;person.name&#125;</span> | <span class="subst">$&#123;newPerson.name&#125;</span>`</span>)</span><br><span class="line"><span class="comment">// aaa | aaa</span></span><br></pre></td></tr></table></figure>
-<p>示例3</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">setName</span>(<span class="params">obj</span>)</span>&#123;</span><br><span class="line">  obj.name = <span class="string">&#x27;bbb&#x27;</span></span><br><span class="line">  <span class="keyword">let</span> obj = <span class="keyword">new</span> <span class="built_in">Object</span>()  <span class="comment">// 如果是按引用传递的,此处传参进来obj应该被重新引用新的内存单元</span></span><br><span class="line">  obj.name = <span class="string">&#x27;ccc&#x27;</span></span><br><span class="line">  <span class="keyword">return</span> obj</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">let</span> person = <span class="keyword">new</span> <span class="built_in">Object</span>()</span><br><span class="line">person.name = <span class="string">&#x27;aaa&#x27;</span></span><br><span class="line"><span class="keyword">let</span> newPerson = setName(person)</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;person.name&#125;</span> | <span class="subst">$&#123;newPerson.name&#125;</span>`</span>)</span><br><span class="line"><span class="comment">// aaa | ccc</span></span><br></pre></td></tr></table></figure>
-<p>// TODO  还是有点懵逼<br>// 还有new出来的实例</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">Usage:</span><br><span class="line">  yq [flags]</span><br><span class="line">  yq [command]</span><br><span class="line"></span><br><span class="line">Available Commands:</span><br><span class="line">  eval             Apply the expression to each document in each yaml file in sequence</span><br><span class="line">  eval-all         Loads _all_ yaml documents of _all_ yaml files and runs expression once</span><br><span class="line">  help             Help about any command</span><br><span class="line">  shell-completion Generate completion script</span><br><span class="line"></span><br><span class="line">Flags:</span><br><span class="line">  -C, --colors                force print with colors</span><br><span class="line">  -e, --exit-status           set exit status if there are no matches or null or false is returned</span><br><span class="line">  -f, --front-matter string   (extract|process) first input as yaml front-matter. Extract will pull out the yaml content, process will run the expression against the yaml content, leaving the remaining data intact</span><br><span class="line">  -h, --help                  help for yq</span><br><span class="line">  -I, --indent int            sets indent level for output (default 2)</span><br><span class="line">  -i, --inplace               update the yaml file inplace of first yaml file given.</span><br><span class="line">  -M, --no-colors             force print with no colors</span><br><span class="line">  -N, --no-doc                Don&#x27;t print document separators (---)</span><br><span class="line">  -n, --null-input            Don&#x27;t read input, simply evaluate the expression given. Useful for creating yaml docs from scratch.</span><br><span class="line">  -P, --prettyPrint           pretty print, shorthand for &#x27;... style = &quot;&quot;&#x27;</span><br><span class="line">  -j, --tojson                output as json. Set indent to 0 to print json in one line.</span><br><span class="line">      --unwrapScalar          unwrap scalar, print the value with no quotes, colors or comments (default true)</span><br><span class="line">  -v, --verbose               verbose mode</span><br><span class="line">  -V, --version               Print version information and quit</span><br><span class="line"></span><br><span class="line">Use &quot;yq [command] --help&quot; for more information about a command.</span><br></pre></td></tr></table></figure>
+
+<p><strong>//TODO 补充实例</strong></p>
 
     </div>
 
@@ -275,18 +269,21 @@
     
 
     <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/TODO/" rel="tag"># TODO</a>
+          </div>
 
         
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/posts/485233ea/" rel="prev" title="关联数组详解">
-                  <i class="fa fa-chevron-left"></i> 关联数组详解
+                <a href="/posts/68b4a711/" rel="prev" title="K8S中port|nodePort|targetPort概念的区分">
+                  <i class="fa fa-chevron-left"></i> K8S中port|nodePort|targetPort概念的区分
                 </a>
             </div>
             <div class="post-nav-item">
-                <a href="/posts/2dd94f98/" rel="next" title="Go|fmt使用">
-                  Go|fmt使用 <i class="fa fa-chevron-right"></i>
+                <a href="/posts/5a8a6c8d/" rel="next" title="K8S|Secret详解">
+                  K8S|Secret详解 <i class="fa fa-chevron-right"></i>
                 </a>
             </div>
           </div>
