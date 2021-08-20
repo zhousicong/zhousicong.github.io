@@ -7,6 +7,7 @@ abbrlink: e6afd30a
 date: 2021-08-20 09:34:05
 tags:
 - kubectl命令
+- TODO
 ---
 
 ## 语法
