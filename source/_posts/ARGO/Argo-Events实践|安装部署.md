@@ -165,6 +165,161 @@ spec:
 ```
 </details>
 
+> senor可以定义一系列的triggers,例如k8s资源对象(eg:workflow对象本身) [sensor-api](https://github.com/argoproj/argo-events/blob/master/api/sensor.md)
+> 示例2可以将资源文件与代码一起提交至代码库,方便进行回归测试,也可以查看不同时期workflow的差异
+<details>
+<summary>示例1: 完整的workflow对象</summary>
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Sensor
+metadata:
+  name: gitlab
+spec:
+  template:
+    serviceAccountName: operate-workflow-sa
+  dependencies:
+    - name: test-dep
+      eventSourceName: gitlab-eventsource
+      eventName: gitlab-example
+  triggers:
+    - template:
+        name: gitlab-workflow-trigger
+        k8s:
+          group: argoproj.io
+          version: v1alpha1
+          resource: workflows
+          operation: create
+          source:
+            resource:
+              apiVersion: argoproj.io/v1alpha1
+              kind: Workflow
+              metadata:
+                generateName: gitlab-workflow-
+              spec:
+                entrypoint: argo-ci
+                arguments:
+                  parameters:
+                    - name: repo
+                      value: http://172.16.20.150/root/vue_todolist.git
+                    - name: revision
+                      value: main
+                templates:
+                  - name: argo-ci
+                    steps:
+                      - - name: checkout
+                          template: checkout
+                          arguments:
+                            parameters:
+                              - name: repo
+                                value: "{{workflow.parameters.repo}}"
+                              - name: revision
+                                value: "{{workflow.parameters.revision}}"
+                      - - name: build
+                          template: build
+                          arguments:
+                            artifacts:
+                              - name: source
+                                from: "{{steps.checkout.outputs.artifacts.source}}"
+                  - name: checkout
+                    inputs:
+                      parameters:
+                        - name: repo
+                        - name: revision
+                      artifacts:
+                        - name: source
+                          path: /src
+                          git:
+                            repo: "{{inputs.parameters.repo}}"
+                            revision: "{{inputs.parameters.revision}}"
+                    outputs:
+                      artifacts:
+                        - name: source
+                          path: /src
+                    container:
+                      image: my-ubuntu:v0.1
+                      command: [sh, -c]
+                      args: ["cd /src && git status && ls -l"]
+                  - name: build
+                    inputs:
+                      artifacts:
+                        - name: source
+                          path: /src
+                    outputs:
+                      artifacts:
+                        - name: source
+                          path: /src
+                    container:
+                      image: my-ubuntu:v0.1
+                      command: [sh, -c]
+                      args: [
+                          "
+                          cd /src &&
+                          npm install --registry https://registry.npm.taobao.org &&
+                          npm run build
+                          ",
+                        ]
+          parameters:
+            - src:
+                dependencyName: test-dep
+                dataKey: body.project.git_http_url
+              dest: spec.arguments.parameters.0.value
+            - src:
+                dependencyName: test-dep
+                dataKey: body.ref
+              dest: spec.arguments.parameters.1.value
+
+```
+</details>
+
+<details>
+<summary>示例2: 访问git仓库中的资源文件</summary>
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Sensor
+metadata:
+  name: gitlab
+spec:
+  template:
+    serviceAccountName: operate-workflow-sa
+  dependencies:
+    - name: test-dep
+      eventSourceName: gitlab-eventsource
+      eventName: gitlab-example
+  triggers:
+    - template:
+        name: gitlab-workflow-trigger
+        k8s:
+          group: argoproj.io
+          version: v1alpha1
+          resource: workflows
+          operation: create
+          source:
+            git:
+              filePath: "workflow/gitlab.yaml"
+          parameters:
+            - src:
+                dependencyName: test-dep
+                dataKey: body.project.git_http_url
+              dest: spec.arguments.parameters.0.value
+            - src:
+                dependencyName: test-dep
+                dataKey: body.ref
+              dest: spec.arguments.parameters.1.value
+      parameters:
+        - src:
+            dependencyName: test-dep
+            dataKey: body.project.git_http_url
+          dest: k8s.source.git.url
+        - src:
+            dependencyName: test-dep
+            dataKey: body.ref
+          dest: k8s.source.git.ref
+
+```
+</details>
+
 ### 7. 验证
 ```
 ❯ curl -d '{"message":"this is my first webhook"}' -H "Content-Type: application/json" -X POST http://localhost:13000/webhook
