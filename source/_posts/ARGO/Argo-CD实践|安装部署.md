@@ -101,3 +101,48 @@ argocd account update-password
 ![argocd-ui-4](https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202108241653505.png)
 ![argocd-ui-5](https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202108241655840.png)
 ![argocd-ui-6](https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202108241656082.png)
+
+### Argocd cli创建APP
+```
+argocd app create my-app --repo http://172.16.20.150/devops/vue_todolist.git --path deploy --dest-namespace test --dest-server https://kubernetes.default.svc --directory-recurse
+```
+![argocd-ui-7](https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202108251023860.png)
+
+### Argocd cli同步APP
+```
+❯ argocd app sync my-app
+TIMESTAMP                  GROUP        KIND   NAMESPACE                  NAME    STATUS    HEALTH        HOOK  MESSAGE
+2021-08-25T10:24:17+08:00            Service        test         nginx-service  OutOfSync  Missing
+2021-08-25T10:24:17+08:00   apps  Deployment        test          nginx-deploy  OutOfSync  Missing
+2021-08-25T10:24:18+08:00            Service        test         nginx-service    Synced  Healthy
+2021-08-25T10:24:19+08:00            Service        test         nginx-service    Synced   Healthy              service/nginx-service created
+2021-08-25T10:24:19+08:00   apps  Deployment        test          nginx-deploy  OutOfSync  Missing              deployment.apps/nginx-deploy created
+2021-08-25T10:24:19+08:00   apps  Deployment        test          nginx-deploy    Synced  Progressing              deployment.apps/nginx-deploy created
+
+Name:               my-app
+Project:            default
+Server:             https://kubernetes.default.svc
+Namespace:          test
+URL:                https://localhost:8080/applications/my-app
+Repo:               http://172.16.20.150/devops/vue_todolist.git
+Target:
+Path:               deploy
+SyncWindow:         Sync Allowed
+Sync Policy:        <none>
+Sync Status:        Synced to  (3ad8e19)
+Health Status:      Progressing
+
+Operation:          Sync
+Sync Revision:      3ad8e19051f9bbf003800790d50ef7fd26cda7c1
+Phase:              Succeeded
+Start:              2021-08-25 10:24:17 +0800 CST
+Finished:           2021-08-25 10:24:19 +0800 CST
+Duration:           2s
+Message:            successfully synced (all tasks run)
+
+GROUP  KIND        NAMESPACE  NAME           STATUS  HEALTH       HOOK  MESSAGE
+       Service     test       nginx-service  Synced  Healthy            service/nginx-service created
+apps   Deployment  test       nginx-deploy   Synced  Progressing        deployment.apps/nginx-deploy created
+```
+![argocd-ui-7](https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202108251025334.png)
+![argocd-ui-8](https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202108251026671.png)
