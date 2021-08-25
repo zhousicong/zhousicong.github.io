@@ -11,6 +11,9 @@ description:
 ---
 ## 介绍
 　　Argo CD 是一个为 Kubernetes 而生的，遵循声明式 GitOps 理念的持续部署工具。Argo CD 可在 Git 存储库更改时自动同步和部署应用程序。
+
+<!-- more -->
+
 　　Argo CD 遵循 GitOps 模式，使用 Git 仓库作为定义所需应用程序状态的真实来源，Argo CD 支持多种 Kubernetes 清单：
 - kustomize
 - helm charts
@@ -18,6 +21,7 @@ description:
 - jsonnet files
 - Plain directory of YAML/json manifests
 - Any custom config management tool configured as a config management plugin
+  
 　　Argo CD 可在指定的目标环境中自动部署所需的应用程序状态，应用程序部署可以在 Git 提交时跟踪对分支、标签的更新，或固定到清单的指定版本。
 
 ## 核心概念
