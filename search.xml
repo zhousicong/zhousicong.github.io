@@ -78,7 +78,10 @@
   <entry>
     <title>Argo CD实战|安装部署</title>
     <url>/posts/a25ee031/</url>
-    <content><![CDATA[<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>　　Argo CD 是一个为 Kubernetes 而生的，遵循声明式 GitOps 理念的持续部署工具。Argo CD 可在 Git 存储库更改时自动同步和部署应用程序。<br>　　Argo CD 遵循 GitOps 模式，使用 Git 仓库作为定义所需应用程序状态的真实来源，Argo CD 支持多种 Kubernetes 清单：</p>
+    <content><![CDATA[<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>　　Argo CD 是一个为 Kubernetes 而生的，遵循声明式 GitOps 理念的持续部署工具。Argo CD 可在 Git 存储库更改时自动同步和部署应用程序。</p>
+<span id="more"></span>
+
+<p>　　Argo CD 遵循 GitOps 模式，使用 Git 仓库作为定义所需应用程序状态的真实来源，Argo CD 支持多种 Kubernetes 清单：</p>
 <ul>
 <li>kustomize</li>
 <li>helm charts</li>
@@ -290,66 +293,6 @@
       </categories>
   </entry>
   <entry>
-    <title>K8S|Secret详解</title>
-    <url>/posts/5a8a6c8d/</url>
-    <content><![CDATA[<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>Secret解决了密码、token、秘钥等敏感数据的配置问题，而不需要把这些敏感数据暴露到镜像或者Pod Spec中。Secret可以以Volume或者环境变量的方式使用。</p>
-<h2 id="Secret类型"><a href="#Secret类型" class="headerlink" title="Secret类型"></a>Secret类型</h2><ul>
-<li>Service Account：用来访问Kubernetes API，由Kubernetes自动创建，并且会自动挂载到Pod的 /run/secrets/kubernetes.io/serviceaccount 目录中。</li>
-<li>Opaque：base64编码格式的Secret，用来存储密码、秘钥等。</li>
-<li>kubernetes.io/dockerconfigjson：用来存储私有docker registry的认证信息。<blockquote>
-<p>本文主要使用Opaque</p>
-</blockquote>
-</li>
-</ul>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 命令行直接创建</span></span><br><span class="line">kubectl create secret generic my-secret --from-literal=username=root --from-literal=password=root</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 使用文件创建</span></span><br><span class="line">echo -n &quot;root&quot; &gt; ./username</span><br><span class="line">echo -n &quot;root&quot; &gt; ./password</span><br><span class="line">kubectl create secret generic my-secret --from-file=./username --from-file=./password</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 先对字符串进行base64加密</span></span><br><span class="line">echo -n &#x27;root&#x27; | base64</span><br><span class="line">cm9vdA==</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 编辑资源文件</span></span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Secret</span><br><span class="line">metadata:</span><br><span class="line">  name: my-secret</span><br><span class="line">type: Opaque</span><br><span class="line">data:</span><br><span class="line">  username: base64</span><br><span class="line">  password: base64</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 解密</span></span><br><span class="line">kubectl get secrets my-secret -o jsonpath=&quot;&#123;.data.username&#125;&quot; | base64 -d</span><br><span class="line">root</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>K8S</category>
-        <category>Secret</category>
-      </categories>
-      <tags>
-        <tag>K8S</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>kubectl|patch命令使用</title>
-    <url>/posts/e6afd30a/</url>
-    <content><![CDATA[<h2 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h2><p><code>kubectl patch (-f FILENAME | TYPE NAME) -p PATCH</code></p>
-<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Partially update a node using a strategic merge patch. Specify the patch as JSON.</span><br><span class="line">kubectl patch node k8s-node-1 -p &#x27;&#123;&quot;spec&quot;:&#123;&quot;unschedulable&quot;:true&#125;&#125;&#x27;</span><br><span class="line"></span><br><span class="line"># Partially update a node using a strategic merge patch. Specify the patch as YAML.</span><br><span class="line">kubectl patch node k8s-node-1 -p $&#x27;spec:\n unschedulable: true&#x27;</span><br><span class="line"></span><br><span class="line"># Partially update a node identified by the type and name specified in &quot;node.json&quot; using strategic mergepatch.</span><br><span class="line">kubectl patch -f node.json -p &#x27;&#123;&quot;spec&quot;:&#123;&quot;unschedulable&quot;:true&#125;&#125;&#x27;</span><br><span class="line"></span><br><span class="line"># Update a container&#x27;s image; spec.containers[*].name is required because it&#x27;s a merge key.</span><br><span class="line">kubectl patch pod valid-pod -p &#x27;&#123;&quot;spec&quot;:&#123;&quot;containers&quot;:[&#123;&quot;name&quot;:&quot;kubernetes-serve-hostname&quot;,&quot;image&quot;:&quot;newimage&quot;&#125;]&#125;&#125;&#x27;</span><br><span class="line"></span><br><span class="line"># Update a container&#x27;s image using a json patch with positional arrays.</span><br><span class="line">kubectl patch pod valid-pod --type=&#x27;json&#x27; -p=&#x27;[&#123;&quot;op&quot;: &quot;replace&quot;, &quot;path&quot;: &quot;/spec/containers/0/image&quot;,&quot;value&quot;:&quot;newimage&quot;&#125;]&#x27;</span><br></pre></td></tr></table></figure>
-
-<h2 id="参数"><a href="#参数" class="headerlink" title="参数"></a>参数</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">-f, --filename=[]: Filename, directory, or URL to a file identifying the resource to update</span><br><span class="line">    --include-extended-apis[=true]: If true, include definitions of new APIs via calls to the APIserver. [default true]</span><br><span class="line">-o, --output=&quot;&quot;: Output mode. Use &quot;-o name&quot; for shorter output (resource/name).</span><br><span class="line">-p, --patch=&quot;&quot;: The patch to be applied to the resource JSON file.</span><br><span class="line">    --record[=false]: Record current kubectl command in the resource annotation.</span><br><span class="line">-R, --recursive[=false]: Process the directory used in -f, --filename recursively. Useful when you want to manage related manifests organized within the same directory.</span><br><span class="line">    --type=&quot;strategic&quot;: The type of patch being provided; one of [json merge strategic]</span><br></pre></td></tr></table></figure>
-
-<p><strong>//TODO 增加一些实战示例</strong></p>
-]]></content>
-      <categories>
-        <category>K8S</category>
-      </categories>
-      <tags>
-        <tag>kubectl命令</tag>
-        <tag>TODO</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>K8S中port|nodePort|targetPort概念的区分</title>
-    <url>/posts/68b4a711/</url>
-    <content><![CDATA[<h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><ul>
-<li>port是service的端口</li>
-<li>targetPort是容器的端口</li>
-<li>nodePort是容器所在宿主机的端口</li>
-</ul>
-<span id="more"></span>
-
-<h2 id="作用"><a href="#作用" class="headerlink" title="作用"></a>作用</h2><h3 id="port"><a href="#port" class="headerlink" title="port"></a>port</h3><p>集群内部服务暴露的端口，可以使用clusterIp:port来访问pod暴露的服务</p>
-<h3 id="targetPort"><a href="#targetPort" class="headerlink" title="targetPort"></a>targetPort</h3><p>最终容器上面暴露的服务端口，应用监听的端口</p>
-<h3 id="nodePort"><a href="#nodePort" class="headerlink" title="nodePort"></a>nodePort</h3><p>当服务类型为NodePort时，会在每个节点上暴露一个端口,可以他通过nodeIp:nodePort从集群外部访问服务。<br>nodeport默认端口范围为(30000-32767)</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>nodePort集群外部访问,pod为集群内部pod相互通信端口,targetPort字面意思就是容器暴露端口。</p>
-]]></content>
-      <categories>
-        <category>K8S</category>
-      </categories>
-  </entry>
-  <entry>
     <title>for循环中i++和++i的区别和效率</title>
     <url>/posts/2e389ba/</url>
     <content><![CDATA[<h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>在看到一些书籍和视频中发现for循环里面有写++i,而不是i++</p>
@@ -419,6 +362,66 @@
       </categories>
   </entry>
   <entry>
+    <title>K8S|Secret详解</title>
+    <url>/posts/5a8a6c8d/</url>
+    <content><![CDATA[<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>Secret解决了密码、token、秘钥等敏感数据的配置问题，而不需要把这些敏感数据暴露到镜像或者Pod Spec中。Secret可以以Volume或者环境变量的方式使用。</p>
+<h2 id="Secret类型"><a href="#Secret类型" class="headerlink" title="Secret类型"></a>Secret类型</h2><ul>
+<li>Service Account：用来访问Kubernetes API，由Kubernetes自动创建，并且会自动挂载到Pod的 /run/secrets/kubernetes.io/serviceaccount 目录中。</li>
+<li>Opaque：base64编码格式的Secret，用来存储密码、秘钥等。</li>
+<li>kubernetes.io/dockerconfigjson：用来存储私有docker registry的认证信息。<blockquote>
+<p>本文主要使用Opaque</p>
+</blockquote>
+</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 命令行直接创建</span></span><br><span class="line">kubectl create secret generic my-secret --from-literal=username=root --from-literal=password=root</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 使用文件创建</span></span><br><span class="line">echo -n &quot;root&quot; &gt; ./username</span><br><span class="line">echo -n &quot;root&quot; &gt; ./password</span><br><span class="line">kubectl create secret generic my-secret --from-file=./username --from-file=./password</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 先对字符串进行base64加密</span></span><br><span class="line">echo -n &#x27;root&#x27; | base64</span><br><span class="line">cm9vdA==</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 编辑资源文件</span></span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Secret</span><br><span class="line">metadata:</span><br><span class="line">  name: my-secret</span><br><span class="line">type: Opaque</span><br><span class="line">data:</span><br><span class="line">  username: base64</span><br><span class="line">  password: base64</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 解密</span></span><br><span class="line">kubectl get secrets my-secret -o jsonpath=&quot;&#123;.data.username&#125;&quot; | base64 -d</span><br><span class="line">root</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>K8S</category>
+        <category>Secret</category>
+      </categories>
+      <tags>
+        <tag>K8S</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>kubectl|patch命令使用</title>
+    <url>/posts/e6afd30a/</url>
+    <content><![CDATA[<h2 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h2><p><code>kubectl patch (-f FILENAME | TYPE NAME) -p PATCH</code></p>
+<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Partially update a node using a strategic merge patch. Specify the patch as JSON.</span><br><span class="line">kubectl patch node k8s-node-1 -p &#x27;&#123;&quot;spec&quot;:&#123;&quot;unschedulable&quot;:true&#125;&#125;&#x27;</span><br><span class="line"></span><br><span class="line"># Partially update a node using a strategic merge patch. Specify the patch as YAML.</span><br><span class="line">kubectl patch node k8s-node-1 -p $&#x27;spec:\n unschedulable: true&#x27;</span><br><span class="line"></span><br><span class="line"># Partially update a node identified by the type and name specified in &quot;node.json&quot; using strategic mergepatch.</span><br><span class="line">kubectl patch -f node.json -p &#x27;&#123;&quot;spec&quot;:&#123;&quot;unschedulable&quot;:true&#125;&#125;&#x27;</span><br><span class="line"></span><br><span class="line"># Update a container&#x27;s image; spec.containers[*].name is required because it&#x27;s a merge key.</span><br><span class="line">kubectl patch pod valid-pod -p &#x27;&#123;&quot;spec&quot;:&#123;&quot;containers&quot;:[&#123;&quot;name&quot;:&quot;kubernetes-serve-hostname&quot;,&quot;image&quot;:&quot;newimage&quot;&#125;]&#125;&#125;&#x27;</span><br><span class="line"></span><br><span class="line"># Update a container&#x27;s image using a json patch with positional arrays.</span><br><span class="line">kubectl patch pod valid-pod --type=&#x27;json&#x27; -p=&#x27;[&#123;&quot;op&quot;: &quot;replace&quot;, &quot;path&quot;: &quot;/spec/containers/0/image&quot;,&quot;value&quot;:&quot;newimage&quot;&#125;]&#x27;</span><br></pre></td></tr></table></figure>
+
+<h2 id="参数"><a href="#参数" class="headerlink" title="参数"></a>参数</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">-f, --filename=[]: Filename, directory, or URL to a file identifying the resource to update</span><br><span class="line">    --include-extended-apis[=true]: If true, include definitions of new APIs via calls to the APIserver. [default true]</span><br><span class="line">-o, --output=&quot;&quot;: Output mode. Use &quot;-o name&quot; for shorter output (resource/name).</span><br><span class="line">-p, --patch=&quot;&quot;: The patch to be applied to the resource JSON file.</span><br><span class="line">    --record[=false]: Record current kubectl command in the resource annotation.</span><br><span class="line">-R, --recursive[=false]: Process the directory used in -f, --filename recursively. Useful when you want to manage related manifests organized within the same directory.</span><br><span class="line">    --type=&quot;strategic&quot;: The type of patch being provided; one of [json merge strategic]</span><br></pre></td></tr></table></figure>
+
+<p><strong>//TODO 增加一些实战示例</strong></p>
+]]></content>
+      <categories>
+        <category>K8S</category>
+      </categories>
+      <tags>
+        <tag>kubectl命令</tag>
+        <tag>TODO</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>K8S中port|nodePort|targetPort概念的区分</title>
+    <url>/posts/68b4a711/</url>
+    <content><![CDATA[<h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><ul>
+<li>port是service的端口</li>
+<li>targetPort是容器的端口</li>
+<li>nodePort是容器所在宿主机的端口</li>
+</ul>
+<span id="more"></span>
+
+<h2 id="作用"><a href="#作用" class="headerlink" title="作用"></a>作用</h2><h3 id="port"><a href="#port" class="headerlink" title="port"></a>port</h3><p>集群内部服务暴露的端口，可以使用clusterIp:port来访问pod暴露的服务</p>
+<h3 id="targetPort"><a href="#targetPort" class="headerlink" title="targetPort"></a>targetPort</h3><p>最终容器上面暴露的服务端口，应用监听的端口</p>
+<h3 id="nodePort"><a href="#nodePort" class="headerlink" title="nodePort"></a>nodePort</h3><p>当服务类型为NodePort时，会在每个节点上暴露一个端口,可以他通过nodeIp:nodePort从集群外部访问服务。<br>nodeport默认端口范围为(30000-32767)</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>nodePort集群外部访问,pod为集群内部pod相互通信端口,targetPort字面意思就是容器暴露端口。</p>
+]]></content>
+      <categories>
+        <category>K8S</category>
+      </categories>
+  </entry>
+  <entry>
     <title>Linux命令|cut</title>
     <url>/posts/5b806bba/</url>
     <content><![CDATA[<h1 id="cut"><a href="#cut" class="headerlink" title="cut"></a>cut</h1><h1 id="参数"><a href="#参数" class="headerlink" title="参数"></a>参数</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">-b ：以字节为单位进行分割。这些字节位置将忽略多字节字符边界，除非也指定了 -n 标志。</span><br><span class="line">-c ：以字符为单位进行分割。</span><br><span class="line">-d ：自定义分隔符，默认为制表符。</span><br><span class="line">-f ：与-d一起使用，指定显示哪个区域。</span><br><span class="line">-n ：取消分割多字节字符。仅和 -b 标志一起使用。如果字符的最后一个字节落在由 -b 标志的 List 参数指示的范围之内，该字符将被写出；否则，该字符将被排除</span><br></pre></td></tr></table></figure>
@@ -426,6 +429,24 @@
       <categories>
         <category>Linux命令</category>
       </categories>
+  </entry>
+  <entry>
+    <title>Linux命令|yq</title>
+    <url>/posts/e6efe92f/</url>
+    <content><![CDATA[<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>yq是一个yaml的命令行解析工具。他有点像jq处理json一样。</p>
+<blockquote>
+<p>当前版本为4.x,4版本和3版本相差很大，请注意语法。</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Usage:</span><br><span class="line">  yq [flags]</span><br><span class="line">  yq [command]</span><br><span class="line"></span><br><span class="line">Available Commands:</span><br><span class="line">  eval             Apply the expression to each document in each yaml file in sequence</span><br><span class="line">  eval-all         Loads _all_ yaml documents of _all_ yaml files and runs expression once</span><br><span class="line">  help             Help about any command</span><br><span class="line">  shell-completion Generate completion script</span><br><span class="line"></span><br><span class="line">Flags:</span><br><span class="line">  -C, --colors                force print with colors</span><br><span class="line">  -e, --exit-status           set exit status if there are no matches or null or false is returned</span><br><span class="line">  -f, --front-matter string   (extract|process) first input as yaml front-matter. Extract will pull out the yaml content, process will run the expression against the yaml content, leaving the remaining data intact</span><br><span class="line">  -h, --help                  help for yq</span><br><span class="line">  -I, --indent int            sets indent level for output (default 2)</span><br><span class="line">  -i, --inplace               update the yaml file inplace of first yaml file given.</span><br><span class="line">  -M, --no-colors             force print with no colors</span><br><span class="line">  -N, --no-doc                Don&#x27;t print document separators (---)</span><br><span class="line">  -n, --null-input            Don&#x27;t read input, simply evaluate the expression given. Useful for creating yaml docs from scratch.</span><br><span class="line">  -P, --prettyPrint           pretty print, shorthand for &#x27;... style = &quot;&quot;&#x27;</span><br><span class="line">  -j, --tojson                output as json. Set indent to 0 to print json in one line.</span><br><span class="line">      --unwrapScalar          unwrap scalar, print the value with no quotes, colors or comments (default true)</span><br><span class="line">  -v, --verbose               verbose mode</span><br><span class="line">  -V, --version               Print version information and quit</span><br><span class="line"></span><br><span class="line">Use &quot;yq [command] --help&quot; for more information about a command.</span><br></pre></td></tr></table></figure>
+
+<p><strong>//TODO 补充实例</strong></p>
+]]></content>
+      <categories>
+        <category>Linux</category>
+      </categories>
+      <tags>
+        <tag>TODO</tag>
+      </tags>
   </entry>
   <entry>
     <title>SHELL参数的含义</title>
@@ -448,24 +469,6 @@
       <categories>
         <category>SHELL</category>
       </categories>
-  </entry>
-  <entry>
-    <title>Linux命令|yq</title>
-    <url>/posts/e6efe92f/</url>
-    <content><![CDATA[<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>yq是一个yaml的命令行解析工具。他有点像jq处理json一样。</p>
-<blockquote>
-<p>当前版本为4.x,4版本和3版本相差很大，请注意语法。</p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Usage:</span><br><span class="line">  yq [flags]</span><br><span class="line">  yq [command]</span><br><span class="line"></span><br><span class="line">Available Commands:</span><br><span class="line">  eval             Apply the expression to each document in each yaml file in sequence</span><br><span class="line">  eval-all         Loads _all_ yaml documents of _all_ yaml files and runs expression once</span><br><span class="line">  help             Help about any command</span><br><span class="line">  shell-completion Generate completion script</span><br><span class="line"></span><br><span class="line">Flags:</span><br><span class="line">  -C, --colors                force print with colors</span><br><span class="line">  -e, --exit-status           set exit status if there are no matches or null or false is returned</span><br><span class="line">  -f, --front-matter string   (extract|process) first input as yaml front-matter. Extract will pull out the yaml content, process will run the expression against the yaml content, leaving the remaining data intact</span><br><span class="line">  -h, --help                  help for yq</span><br><span class="line">  -I, --indent int            sets indent level for output (default 2)</span><br><span class="line">  -i, --inplace               update the yaml file inplace of first yaml file given.</span><br><span class="line">  -M, --no-colors             force print with no colors</span><br><span class="line">  -N, --no-doc                Don&#x27;t print document separators (---)</span><br><span class="line">  -n, --null-input            Don&#x27;t read input, simply evaluate the expression given. Useful for creating yaml docs from scratch.</span><br><span class="line">  -P, --prettyPrint           pretty print, shorthand for &#x27;... style = &quot;&quot;&#x27;</span><br><span class="line">  -j, --tojson                output as json. Set indent to 0 to print json in one line.</span><br><span class="line">      --unwrapScalar          unwrap scalar, print the value with no quotes, colors or comments (default true)</span><br><span class="line">  -v, --verbose               verbose mode</span><br><span class="line">  -V, --version               Print version information and quit</span><br><span class="line"></span><br><span class="line">Use &quot;yq [command] --help&quot; for more information about a command.</span><br></pre></td></tr></table></figure>
-
-<p><strong>//TODO 补充实例</strong></p>
-]]></content>
-      <categories>
-        <category>Linux</category>
-      </categories>
-      <tags>
-        <tag>TODO</tag>
-      </tags>
   </entry>
   <entry>
     <title>Docker搭建registry</title>
