@@ -22,28 +22,25 @@
   <script src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.js" integrity="sha256-a5YRB27CcBwBFcT5EF/f3E4vzIqyHrSR878nseNYw64=" crossorigin="anonymous"></script>
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Mist","version":"8.7.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
-<meta name="description" content="使用boto3验证S3服务">
-<meta property="og:type" content="article">
-<meta property="og:title" content="awk-sdk-python验证S3服务">
-<meta property="og:url" content="http://example.com/posts/5a7446d2/index.html">
+<meta name="description" content="Talk less Do more">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Vincent&#39;s Blog">
+<meta property="og:url" content="http://example.com/categories/NODEJS/index.html">
 <meta property="og:site_name" content="Vincent&#39;s Blog">
-<meta property="og:description" content="使用boto3验证S3服务">
+<meta property="og:description" content="Talk less Do more">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2021-08-23T09:07:23.000Z">
-<meta property="article:modified_time" content="2021-08-23T10:32:57.207Z">
 <meta property="article:author" content="Vincent Zhou">
-<meta property="article:tag" content="TODO">
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="http://example.com/posts/5a7446d2/">
+<link rel="canonical" href="http://example.com/categories/NODEJS/">
 
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/posts/5a7446d2/","path":"posts/5a7446d2/","title":"awk-sdk-python验证S3服务"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":false,"lang":"zh-CN","comments":"","permalink":"","path":"categories/NODEJS/index.html","title":""}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>awk-sdk-python验证S3服务 | Vincent's Blog</title>
+<title>分类: NODEJS | Vincent's Blog</title>
   
 
 
@@ -203,100 +200,50 @@
 </noscript>
 
 
-    <div class="main-inner post posts-expand">
+    <div class="main-inner category posts-collapse">
 
 
   
-
-
-<div class="post-block">
   
   
+  <div class="post-block">
+    <div class="post-content">
+      <div class="collection-title">
+        <h2 class="collection-header">NODEJS
+          <small>分类</small>
+        </h2>
+      </div>
 
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/posts/5a7446d2/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/panda.jpg">
-      <meta itemprop="name" content="Vincent Zhou">
-      <meta itemprop="description" content="Talk less Do more">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Vincent's Blog">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          awk-sdk-python验证S3服务
-        </h1>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/S3/" itemprop="url" rel="index"><span itemprop="name">S3</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-            <div class="post-description">使用boto3验证S3服务</div>
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-        <blockquote>
-<p>How to use awk-sdk-python to validate access to s3 server</p>
-</blockquote>
-<ol>
-<li><p>Prerequisites<br>Install the AWS SDK for Python from <a target="_blank" rel="noopener" href="https://aws.amazon.com/cn/sdk-for-python/">here</a></p>
-</li>
-<li><p>Example<br>Please replace endpoint_url,aws_access_key_id, aws_secret_access_key, Bucket and Object with your local setup in this example.py file.</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"><span class="comment"># _*_ coding:utf-8 _*_</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> boto3.session <span class="keyword">import</span> Session</span><br><span class="line"></span><br><span class="line">access_key = <span class="string">&quot;minioadmin&quot;</span></span><br><span class="line">secret_key = <span class="string">&quot;minioadmin&quot;</span></span><br><span class="line">endpoint_url = <span class="string">&quot;http://localhost:9000&quot;</span></span><br><span class="line">bucket_name = <span class="string">&quot;my-bucket&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Connect to s3</span></span><br><span class="line">session = Session(aws_access_key_id=access_key, aws_secret_access_key=secret_key)</span><br><span class="line">s3 = session.resource(<span class="string">&quot;s3&quot;</span>, endpoint_url=endpoint_url)</span><br><span class="line"></span><br><span class="line"><span class="comment"># List all the existing buckets</span></span><br><span class="line"><span class="keyword">for</span> bucket <span class="keyword">in</span> s3.buckets.<span class="built_in">all</span>():</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;bucket name:%s&quot;</span> % bucket.name)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Create a new bucket</span></span><br><span class="line">s3.create_bucket(Bucket=bucket_name)</span><br><span class="line">bucket = s3.Bucket(bucket_name)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Upload a file from local file system &#x27;/home/root/file.txt&#x27; to bucket</span></span><br><span class="line">bucket.upload_file(<span class="string">&quot;/home/root/file.txt&quot;</span>, <span class="string">&quot;file.txt&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># List all objects</span></span><br><span class="line"><span class="keyword">for</span> obj <span class="keyword">in</span> bucket.objects.<span class="built_in">all</span>():</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;obj name:%s&quot;</span> % obj.key)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Download the object &#x27;file.txt&#x27; from the bucket and save it to local file system</span></span><br><span class="line">bucket.download_file(<span class="string">&quot;file.txt&quot;</span>, <span class="string">&quot;/tmp/file.txt&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Delete all the objects</span></span><br><span class="line">bucket.objects.<span class="built_in">filter</span>().delete()</span><br><span class="line"></span><br><span class="line"><span class="comment"># Delete bucket</span></span><br><span class="line">bucket.delete()</span><br></pre></td></tr></table></figure></li>
-</ol>
-<p><code>TODO: resource和client的差别</code></p>
-
+      
+    <div class="collection-year">
+      <span class="collection-header">2021</span>
     </div>
 
-    
-    
-    
+  <article itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+      <div class="post-meta-container">
+        <time itemprop="dateCreated"
+              datetime="2021-08-26T14:34:31+08:00"
+              content="2021-08-26">
+          08-26
+        </time>
+      </div>
 
-    <footer class="post-footer">
-          <div class="post-tags">
-              <a href="/tags/TODO/" rel="tag"># TODO</a>
-          </div>
+      <div class="post-title">
+          <a class="post-title-link" href="/posts/9a2f555f/" itemprop="url">
+            <span itemprop="name">通过nodejs查看http的STAUS_CODE</span>
+          </a>
+      </div>
 
-        
-
-          <div class="post-nav">
-            <div class="post-nav-item">
-                <a href="/posts/a25ee031/" rel="prev" title="Argo CD实战|安装部署">
-                  <i class="fa fa-chevron-left"></i> Argo CD实战|安装部署
-                </a>
-            </div>
-            <div class="post-nav-item">
-                <a href="/posts/2adf5bb7/" rel="next" title="Docker搭建registry">
-                  Docker搭建registry <i class="fa fa-chevron-right"></i>
-                </a>
-            </div>
-          </div>
-    </footer>
+      
+    </header>
   </article>
-</div>
 
-
-
-
-
+    </div>
+  </div>
+  
+  
+  
 
 </div>
   </main>

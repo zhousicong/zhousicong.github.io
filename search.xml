@@ -125,22 +125,6 @@
       </tags>
   </entry>
   <entry>
-    <title>argo-combined-demo</title>
-    <url>/posts/612a1ead/</url>
-    <content><![CDATA[<blockquote>
-<p>Automation of Every - How To combine Argo Events, Workflow &amp; CD</p>
-</blockquote>
-<span id="more"></span>
-<p><img src="https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202108251511952.png" alt="process"></p>
-]]></content>
-      <categories>
-        <category>Argo</category>
-      </categories>
-      <tags>
-        <tag>Argo</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Argo Workflow实践|安装部署</title>
     <url>/posts/1e633edc/</url>
     <content><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>　　Argo Workflow是一个云原生的工作流引擎，专注于编排并行任务。特点如下:</p>
@@ -175,6 +159,22 @@
       <categories>
         <category>Argo</category>
         <category>Argo Workflow</category>
+      </categories>
+      <tags>
+        <tag>Argo</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>argo-combined-demo</title>
+    <url>/posts/612a1ead/</url>
+    <content><![CDATA[<blockquote>
+<p>Automation of Every - How To combine Argo Events, Workflow &amp; CD</p>
+</blockquote>
+<span id="more"></span>
+<p><img src="https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202108251511952.png" alt="process"></p>
+]]></content>
+      <categories>
+        <category>Argo</category>
       </categories>
       <tags>
         <tag>Argo</tag>
@@ -249,113 +249,149 @@
       </categories>
   </entry>
   <entry>
-    <title>K8S|Secret详解</title>
-    <url>/posts/5a8a6c8d/</url>
-    <content><![CDATA[<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>Secret解决了密码、token、秘钥等敏感数据的配置问题，而不需要把这些敏感数据暴露到镜像或者Pod Spec中。Secret可以以Volume或者环境变量的方式使用。</p>
-<h2 id="Secret类型"><a href="#Secret类型" class="headerlink" title="Secret类型"></a>Secret类型</h2><ul>
-<li>Service Account：用来访问Kubernetes API，由Kubernetes自动创建，并且会自动挂载到Pod的 /run/secrets/kubernetes.io/serviceaccount 目录中。</li>
-<li>Opaque：base64编码格式的Secret，用来存储密码、秘钥等。</li>
-<li>kubernetes.io/dockerconfigjson：用来存储私有docker registry的认证信息。<blockquote>
-<p>本文主要使用Opaque</p>
-</blockquote>
-</li>
-</ul>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 命令行直接创建</span></span><br><span class="line">kubectl create secret generic my-secret --from-literal=username=root --from-literal=password=root</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 使用文件创建</span></span><br><span class="line">echo -n &quot;root&quot; &gt; ./username</span><br><span class="line">echo -n &quot;root&quot; &gt; ./password</span><br><span class="line">kubectl create secret generic my-secret --from-file=./username --from-file=./password</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 先对字符串进行base64加密</span></span><br><span class="line">echo -n &#x27;root&#x27; | base64</span><br><span class="line">cm9vdA==</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 编辑资源文件</span></span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Secret</span><br><span class="line">metadata:</span><br><span class="line">  name: my-secret</span><br><span class="line">type: Opaque</span><br><span class="line">data:</span><br><span class="line">  username: base64</span><br><span class="line">  password: base64</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 解密</span></span><br><span class="line">kubectl get secrets my-secret -o jsonpath=&quot;&#123;.data.username&#125;&quot; | base64 -d</span><br><span class="line">root</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>K8S</category>
-        <category>Secret</category>
-      </categories>
-      <tags>
-        <tag>K8S</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>kubectl|patch命令使用</title>
-    <url>/posts/e6afd30a/</url>
-    <content><![CDATA[<h2 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h2><p><code>kubectl patch (-f FILENAME | TYPE NAME) -p PATCH</code></p>
-<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Partially update a node using a strategic merge patch. Specify the patch as JSON.</span><br><span class="line">kubectl patch node k8s-node-1 -p &#x27;&#123;&quot;spec&quot;:&#123;&quot;unschedulable&quot;:true&#125;&#125;&#x27;</span><br><span class="line"></span><br><span class="line"># Partially update a node using a strategic merge patch. Specify the patch as YAML.</span><br><span class="line">kubectl patch node k8s-node-1 -p $&#x27;spec:\n unschedulable: true&#x27;</span><br><span class="line"></span><br><span class="line"># Partially update a node identified by the type and name specified in &quot;node.json&quot; using strategic mergepatch.</span><br><span class="line">kubectl patch -f node.json -p &#x27;&#123;&quot;spec&quot;:&#123;&quot;unschedulable&quot;:true&#125;&#125;&#x27;</span><br><span class="line"></span><br><span class="line"># Update a container&#x27;s image; spec.containers[*].name is required because it&#x27;s a merge key.</span><br><span class="line">kubectl patch pod valid-pod -p &#x27;&#123;&quot;spec&quot;:&#123;&quot;containers&quot;:[&#123;&quot;name&quot;:&quot;kubernetes-serve-hostname&quot;,&quot;image&quot;:&quot;newimage&quot;&#125;]&#125;&#125;&#x27;</span><br><span class="line"></span><br><span class="line"># Update a container&#x27;s image using a json patch with positional arrays.</span><br><span class="line">kubectl patch pod valid-pod --type=&#x27;json&#x27; -p=&#x27;[&#123;&quot;op&quot;: &quot;replace&quot;, &quot;path&quot;: &quot;/spec/containers/0/image&quot;,&quot;value&quot;:&quot;newimage&quot;&#125;]&#x27;</span><br></pre></td></tr></table></figure>
-
-<h2 id="参数"><a href="#参数" class="headerlink" title="参数"></a>参数</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">-f, --filename=[]: Filename, directory, or URL to a file identifying the resource to update</span><br><span class="line">    --include-extended-apis[=true]: If true, include definitions of new APIs via calls to the APIserver. [default true]</span><br><span class="line">-o, --output=&quot;&quot;: Output mode. Use &quot;-o name&quot; for shorter output (resource/name).</span><br><span class="line">-p, --patch=&quot;&quot;: The patch to be applied to the resource JSON file.</span><br><span class="line">    --record[=false]: Record current kubectl command in the resource annotation.</span><br><span class="line">-R, --recursive[=false]: Process the directory used in -f, --filename recursively. Useful when you want to manage related manifests organized within the same directory.</span><br><span class="line">    --type=&quot;strategic&quot;: The type of patch being provided; one of [json merge strategic]</span><br></pre></td></tr></table></figure>
-
-<p><strong>//TODO 增加一些实战示例</strong></p>
-]]></content>
-      <categories>
-        <category>K8S</category>
-      </categories>
-      <tags>
-        <tag>kubectl命令</tag>
-        <tag>TODO</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>K8S中port|nodePort|targetPort概念的区分</title>
-    <url>/posts/68b4a711/</url>
-    <content><![CDATA[<h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><ul>
-<li>port是service的端口</li>
-<li>targetPort是容器的端口</li>
-<li>nodePort是容器所在宿主机的端口</li>
-</ul>
-<span id="more"></span>
-
-<h2 id="作用"><a href="#作用" class="headerlink" title="作用"></a>作用</h2><h3 id="port"><a href="#port" class="headerlink" title="port"></a>port</h3><p>集群内部服务暴露的端口，可以使用clusterIp:port来访问pod暴露的服务</p>
-<h3 id="targetPort"><a href="#targetPort" class="headerlink" title="targetPort"></a>targetPort</h3><p>最终容器上面暴露的服务端口，应用监听的端口</p>
-<h3 id="nodePort"><a href="#nodePort" class="headerlink" title="nodePort"></a>nodePort</h3><p>当服务类型为NodePort时，会在每个节点上暴露一个端口,可以他通过nodeIp:nodePort从集群外部访问服务。<br>nodeport默认端口范围为(30000-32767)</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>nodePort集群外部访问,pod为集群内部pod相互通信端口,targetPort字面意思就是容器暴露端口。</p>
-]]></content>
-      <categories>
-        <category>K8S</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>Linux命令|cut</title>
-    <url>/posts/5b806bba/</url>
-    <content><![CDATA[<h1 id="cut"><a href="#cut" class="headerlink" title="cut"></a>cut</h1><h1 id="参数"><a href="#参数" class="headerlink" title="参数"></a>参数</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">-b ：以字节为单位进行分割。这些字节位置将忽略多字节字符边界，除非也指定了 -n 标志。</span><br><span class="line">-c ：以字符为单位进行分割。</span><br><span class="line">-d ：自定义分隔符，默认为制表符。</span><br><span class="line">-f ：与-d一起使用，指定显示哪个区域。</span><br><span class="line">-n ：取消分割多字节字符。仅和 -b 标志一起使用。如果字符的最后一个字节落在由 -b 标志的 List 参数指示的范围之内，该字符将被写出；否则，该字符将被排除</span><br></pre></td></tr></table></figure>
-<h1 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h1><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ping www.baidu.com  -c1 | grep PING | cut -d &#x27;(&#x27; -f2| cut -d &#x27;)&#x27; -f1</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Linux命令</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>Linux命令|yq</title>
-    <url>/posts/e6efe92f/</url>
-    <content><![CDATA[<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>yq是一个yaml的命令行解析工具。他有点像jq处理json一样。</p>
+    <title>Golang开发环境配置</title>
+    <url>/posts/b66fdee6/</url>
+    <content><![CDATA[<h2 id="开发环境搭建"><a href="#开发环境搭建" class="headerlink" title="开发环境搭建"></a>开发环境搭建</h2><hr>
+<h3 id="安装Golang"><a href="#安装Golang" class="headerlink" title="安装Golang"></a>安装Golang</h3><ol>
+<li>Golang<a href="https://golang.org/">官网</a>,进入下载页面，选择对应的版本进行下载安装</li>
+<li>mac可以通过Homebrew <code>brew install go</code>进行安装</li>
+</ol>
 <blockquote>
-<p>当前版本为4.x,4版本和3版本相差很大，请注意语法。</p>
+<p>安装完成后可以通过运行<code>go env</code>查看是否安装成功</p>
 </blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Usage:</span><br><span class="line">  yq [flags]</span><br><span class="line">  yq [command]</span><br><span class="line"></span><br><span class="line">Available Commands:</span><br><span class="line">  eval             Apply the expression to each document in each yaml file in sequence</span><br><span class="line">  eval-all         Loads _all_ yaml documents of _all_ yaml files and runs expression once</span><br><span class="line">  help             Help about any command</span><br><span class="line">  shell-completion Generate completion script</span><br><span class="line"></span><br><span class="line">Flags:</span><br><span class="line">  -C, --colors                force print with colors</span><br><span class="line">  -e, --exit-status           set exit status if there are no matches or null or false is returned</span><br><span class="line">  -f, --front-matter string   (extract|process) first input as yaml front-matter. Extract will pull out the yaml content, process will run the expression against the yaml content, leaving the remaining data intact</span><br><span class="line">  -h, --help                  help for yq</span><br><span class="line">  -I, --indent int            sets indent level for output (default 2)</span><br><span class="line">  -i, --inplace               update the yaml file inplace of first yaml file given.</span><br><span class="line">  -M, --no-colors             force print with no colors</span><br><span class="line">  -N, --no-doc                Don&#x27;t print document separators (---)</span><br><span class="line">  -n, --null-input            Don&#x27;t read input, simply evaluate the expression given. Useful for creating yaml docs from scratch.</span><br><span class="line">  -P, --prettyPrint           pretty print, shorthand for &#x27;... style = &quot;&quot;&#x27;</span><br><span class="line">  -j, --tojson                output as json. Set indent to 0 to print json in one line.</span><br><span class="line">      --unwrapScalar          unwrap scalar, print the value with no quotes, colors or comments (default true)</span><br><span class="line">  -v, --verbose               verbose mode</span><br><span class="line">  -V, --version               Print version information and quit</span><br><span class="line"></span><br><span class="line">Use &quot;yq [command] --help&quot; for more information about a command.</span><br></pre></td></tr></table></figure>
-
-<p><strong>//TODO 补充实例</strong></p>
+<h3 id="关于GOROOT和GOPATH"><a href="#关于GOROOT和GOPATH" class="headerlink" title="关于GOROOT和GOPATH"></a>关于GOROOT和GOPATH</h3><h4 id="GOROOT"><a href="#GOROOT" class="headerlink" title="GOROOT"></a>GOROOT</h4><p>GOROOT就是你go的安装目录,使用Homebrew安装对应的目录就是<font color="DeepPink">/usr/local/Cellar/go/1.16.5/libexec</font>。</p>
+<h4 id="GOPATH"><a href="#GOPATH" class="headerlink" title="GOPATH"></a>GOPATH</h4><p>GOPATH是go的工作目录。谈GOPATH时需要引入一个环境变量<code>GO111MODULE</code>。<br>写本文时的go安装版本为1.16.5。GO111MODULE的参数为off、on和auto,其不同值的表现行为如下:</p>
+<ul>
+<li>auto (默认值)<ul>
+<li>当项目路径(go.mod)在GOPATH外时，其行为等同于GO111MODULE=on。这意味着可以将代码仓库存储于GOPATH之外</li>
+<li>当项目路径在GOPATH内，并且没有go.mod文件存在时，其行为等同于GO111MODULE=off</li>
+</ul>
+</li>
+<li>off<br>无模块支持，go会从GOPATH和vender文件夹寻找包</li>
+<li>on<br>模块支持,go会忽略GOPATH和vender文件夹，只根据<font color="DeepPink">go.mod</font>下载依赖。</li>
+</ul>
 ]]></content>
       <categories>
-        <category>Linux</category>
+        <category>GO</category>
       </categories>
       <tags>
-        <tag>TODO</tag>
+        <tag>GO</tag>
       </tags>
   </entry>
   <entry>
-    <title>SHELL参数的含义</title>
-    <url>/posts/1b4c4aa3/</url>
-    <content><![CDATA[<ul>
-<li>$0<br>当前脚本的文件名</li>
-<li>$n<br>传递给脚本或函数的参数。n 是一个数字，表示第几个参数。例如，第一个参数是$1，第二个参数是$2。</li>
-<li>$#<br>传递给脚本或函数的参数个数。</li>
-<li>$*<br>传递给脚本或函数的所有参数。</li>
-<li>$@<br>传递给脚本或函数的所有参数。</li>
-<li>$* 和 $@ 的区别<ul>
-<li>$* 和 $@ 都表示传递给函数或脚本的所有参数，不被双引号(“ “)包含时，都以”$1” “2” “n” 的形式输出所有参数</li>
-<li>当它们被双引号(“ “)包含时，”$*” 会将所有的参数作为一个整体，以”$1 $2 … n”的形式输出所有参数；”n”的形式输出所有参数；”n”的形式输出所有参数；”@” 会将各个参数分开，以”$1” “2”…”n” 的形式输出所有参数。</li>
+    <title>微软Doc|Go入门</title>
+    <url>/posts/eb7fce26/</url>
+    <content><![CDATA[<p><a href="https://docs.microsoft.com/zh-cn/learn/paths/go-first-steps/">微软-Go入门</a></p>
+<span id="more"></span>
+<details>
+<summary>目录</summary>
+
+<ul>
+<li><a href="#%E5%A3%B0%E6%98%8E%E5%92%8C%E4%BD%BF%E7%94%A8%E5%8F%98%E9%87%8F">声明和使用变量</a></li>
+<li><a href="#%E5%88%9D%E5%A7%8B%E5%8C%96%E5%8F%98%E9%87%8F">初始化变量</a></li>
+<li><a href="#%E9%80%9A%E8%BF%87%E5%A4%9A%E7%A7%8D%E6%96%B9%E5%BC%8F%E5%88%9D%E5%A7%8B%E5%8C%96%E5%8F%98%E9%87%8F">通过多种方式初始化变量</a></li>
+<li><a href="#%E5%A3%B0%E6%98%8E%E5%B8%B8%E9%87%8F">声明常量</a></li>
+<li><a href="#%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B">基本数据类型</a><ul>
+<li><a href="#%E6%95%B4%E6%95%B0%E6%95%B0%E5%AD%97">整数数字</a></li>
+<li><a href="#%E6%B5%AE%E7%82%B9%E6%95%B0%E5%AD%97">浮点数字</a></li>
+<li><a href="#%E5%B8%83%E5%B0%94%E5%9E%8B">布尔型</a></li>
+<li><a href="#%E5%AD%97%E7%AC%A6%E4%B8%B2">字符串</a></li>
+<li><a href="#%E9%BB%98%E8%AE%A4%E5%80%BC">默认值</a></li>
 </ul>
 </li>
-<li>$?<br>上个命令的退出状态，或函数的返回值。</li>
-<li>$$<br>当前Shell进程ID。对于 Shell 脚本，就是这些脚本所在的进程ID</li>
+<li><a href="#%E5%87%BD%E6%95%B0">函数</a><ul>
+<li><a href="#main%E5%87%BD%E6%95%B0">main函数</a></li>
+<li><a href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E5%87%BD%E6%95%B0">自定义函数</a></li>
+<li><a href="#%E6%9B%B4%E6%94%B9%E5%87%BD%E6%95%B0%E5%8F%82%E6%95%B0%E5%80%BC%E6%8C%87%E9%92%88">更改函数参数值(指针)</a></li>
 </ul>
+</li>
+<li><a href="#%E5%9C%A8go%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%8E%A7%E5%88%B6%E6%B5%81">在GO中使用控制流</a><ul>
+<li><a href="#defer%E5%87%BD%E6%95%B0">defer函数</a></li>
+<li><a href="#panic%E5%87%BD%E6%95%B0">panic函数</a></li>
+</ul>
+</li>
+<li><a href="#%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B">数据类型</a><ul>
+<li><a href="#%E6%95%B0%E7%BB%84">数组</a></li>
+<li><a href="#%E5%88%87%E7%89%87">切片</a></li>
+<li><a href="#%E6%98%A0%E5%B0%84">映射</a></li>
+</ul>
+</li>
+<li><a href="#goroutine">goroutine</a></li>
+<li><a href="#channel">channel</a><ul>
+<li><a href="#%E6%97%A0%E7%BC%93%E5%86%B2-channel-%E4%B8%8E%E6%9C%89%E7%BC%93%E5%86%B2-channel">无缓冲 channel 与有缓冲 channel</a></details>
+### 声明和使用变量
+<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 声明单个变量</span></span><br><span class="line"><span class="keyword">var</span> firstName <span class="keyword">string</span></span><br><span class="line"><span class="comment">// 声明多个变量</span></span><br><span class="line"><span class="keyword">var</span> firstName, lastName <span class="keyword">string</span></span><br><span class="line"><span class="comment">// 声明不同类型变量</span></span><br><span class="line"><span class="keyword">var</span> firstName, lastName <span class="keyword">string</span></span><br><span class="line"><span class="keyword">var</span> age <span class="keyword">int</span></span><br><span class="line"><span class="comment">// or</span></span><br><span class="line"><span class="keyword">var</span> (</span><br><span class="line">    firstName, lastName <span class="keyword">string</span></span><br><span class="line">    age <span class="keyword">int</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ul>
+<h3 id="初始化变量"><a href="#初始化变量" class="headerlink" title="初始化变量"></a>初始化变量</h3><figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 指定类型初始化变量</span></span><br><span class="line"><span class="keyword">var</span> (</span><br><span class="line">    firstName <span class="keyword">string</span> = <span class="string">&quot;John&quot;</span></span><br><span class="line">    lastName  <span class="keyword">string</span> = <span class="string">&quot;Doe&quot;</span></span><br><span class="line">    age       <span class="keyword">int</span>    = <span class="number">32</span></span><br><span class="line">)</span><br><span class="line"><span class="comment">// 不指定类型初始化变量，Go会推断出类型</span></span><br><span class="line"><span class="keyword">var</span> (</span><br><span class="line">    firstName = <span class="string">&quot;John&quot;</span></span><br><span class="line">    lastName  = <span class="string">&quot;Doe&quot;</span></span><br><span class="line">    age       = <span class="number">32</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<h3 id="通过多种方式初始化变量"><a href="#通过多种方式初始化变量" class="headerlink" title="通过多种方式初始化变量"></a>通过多种方式初始化变量</h3><p>在 Go 中，你可以在单行中声明和初始化变量。 使用逗号将每个变量名称隔开，并对每个值执行相同的操作（按同一顺序），如下所示：</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> (</span><br><span class="line">    firstName, lastName, age = <span class="string">&quot;John&quot;</span>, <span class="string">&quot;Doe&quot;</span>, <span class="number">32</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>还可以通过另一种方式来声明和初始化变量。 此方法是在 Go 中执行此操作的最常见方法。 以下是我们使用的同一个示例说明：</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    firstName, lastName := <span class="string">&quot;John&quot;</span>, <span class="string">&quot;Doe&quot;</span></span><br><span class="line">    age := <span class="number">32</span></span><br><span class="line">    <span class="built_in">println</span>(firstName, lastName, age)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行上述代码，确认此方法能否声明和初始化变量。</p>
+<p>请注意，在定义变量名称后，需要在此处加入一个冒号等于号 (:=) 和相应的值。 使用冒号等于号时，要声明的变量必须是新变量。 如果使用冒号等于号并已经声明该变量，将不会对程序进行编译。 继续尝试。</p>
+<p>最终，你能在函数内使用冒号等于号。 在声明函数外的变量时，必须使用 var 关键字执行此操作。 如果你不熟悉函数，请不要担心。 我们会在后续单元中介绍函数。</p>
+<h3 id="声明常量"><a href="#声明常量" class="headerlink" title="声明常量"></a>声明常量</h3><figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> HTTPStatusOK = <span class="number">200</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="基本数据类型"><a href="#基本数据类型" class="headerlink" title="基本数据类型"></a>基本数据类型</h3><p>Go 是一种强类型语言。 这意味着你声明的每个变量都绑定到特定的数据类型，并且只接受与此类型匹配的值。<br>Go 有四类数据类型：</p>
+<ul>
+<li>基本类型：数字、字符串和布尔值</li>
+<li>聚合类型：数组和结构</li>
+<li>引用类型：指针、切片、映射、函数和通道</li>
+<li>接口类型：接口</li>
+</ul>
+<h4 id="整数数字"><a href="#整数数字" class="headerlink" title="整数数字"></a>整数数字</h4><ul>
+<li>int、int8、int16、int32 和 int64 类型,其大小分别为 8、16、32 或 64 位的整数。</li>
+<li>uint、uint8、uint16、uint32 和 uint64 类型<h4 id="浮点数字"><a href="#浮点数字" class="headerlink" title="浮点数字"></a>浮点数字</h4></li>
+<li>float32、fload64<h4 id="布尔型"><a href="#布尔型" class="headerlink" title="布尔型"></a>布尔型</h4></li>
+<li>true、false<h4 id="字符串"><a href="#字符串" class="headerlink" title="字符串"></a>字符串</h4>字符串转义符</li>
+<li>\n：新行</li>
+<li>\r：回车符</li>
+<li>\t：选项卡</li>
+<li>&#39;：单引号</li>
+<li>&quot;：双引号</li>
+<li>\：反斜杠<h4 id="默认值"><a href="#默认值" class="headerlink" title="默认值"></a>默认值</h4></li>
+<li>int 类型的 0（及其所有子类型，如 int64）</li>
+<li>float32 和 float64 类型的 +0.000000e+000</li>
+<li>bool 类型的 false</li>
+<li>string 类型的空值<h3 id="函数"><a href="#函数" class="headerlink" title="函数"></a>函数</h3><h4 id="main函数"><a href="#main函数" class="headerlink" title="main函数"></a>main函数</h4>Go中所有可执行程序都具有此函数，因为他是程序的起点。<h4 id="自定义函数"><a href="#自定义函数" class="headerlink" title="自定义函数"></a>自定义函数</h4><figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 示例</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">name</span><span class="params">(parameters)</span> <span class="params">(results)</span></span> &#123;</span><br><span class="line">    body-content</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">sum</span><span class="params">(number1 <span class="keyword">string</span>, number2 <span class="keyword">string</span>)</span> <span class="params">(result <span class="keyword">int</span>)</span></span> &#123;</span><br><span class="line">    int1, _ := strconv.Atoi(number1)</span><br><span class="line">    int2, _ := strconv.Atoi(number2)</span><br><span class="line">    result = int1 + int2</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 返回多个值</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">calc</span><span class="params">(number1 <span class="keyword">string</span>, number2 <span class="keyword">string</span>)</span> <span class="params">(sum <span class="keyword">int</span>, mul <span class="keyword">int</span>)</span></span> &#123;</span><br><span class="line">    int1, _ := strconv.Atoi(number1)</span><br><span class="line">    int2, _ := strconv.Atoi(number2)</span><br><span class="line">    sum = int1 + int2</span><br><span class="line">    mul = int1 * int2</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="更改函数参数值-指针"><a href="#更改函数参数值-指针" class="headerlink" title="更改函数参数值(指针)"></a>更改函数参数值(指针)</h4>将值传递给函数时，该函数中的每个更改都不会影响调用方。 Go 是“按值传递”编程语言。 这意味着每次向函数传递值时，Go 都会使用该值并创建本地副本（内存中的新变量）。 在函数中对该变量所做的更改都不会影响你向函数发送的更改。<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    firstName := <span class="string">&quot;John&quot;</span></span><br><span class="line">    updateName(firstName)</span><br><span class="line">    <span class="built_in">println</span>(firstName)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">updateName</span><span class="params">(name <span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">    name = <span class="string">&quot;David&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+即使你在函数中将该名称更改为 David，输出仍为 John。 由于 updateName 函数中的更改仅会修改本地副本，因此输出不会发生变化。 Go 传递变量的值，而不是变量本身。</li>
+</ul>
+<p>如果你希望在 updateName 函数中进行的更改会影响 main 函数中的 firstName 变量，则需要使用指针。 指针 是包含另一个变量的内存地址的变量。 当你发送指向某个函数的指针时，不会传递值，而是传递地址内存。 因此，对该变量所做的每个更改都会影响调用方。</p>
+<p>在 Go 中，有两个运算符可用于处理指针：</p>
+<p>&amp; 运算符使用其后对象的地址。</p>
+<ul>
+<li>运算符取消引用指针。 也就是说，你可以前往指针中包含的地址访问其中的对象。<br><code>*可以看成是&amp;的逆运算</code><br>让我们修改前面的示例，以阐明指针的工作方式：<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    firstName := <span class="string">&quot;John&quot;</span></span><br><span class="line">    updateName(&amp;firstName)</span><br><span class="line">    <span class="built_in">println</span>(firstName)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">updateName</span><span class="params">(name *<span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">    *name = <span class="string">&quot;David&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+运行前面的代码。 请注意，输出现在显示的是 David，而不是 John。</li>
+</ul>
+<p>首先要做的就是修改函数的签名，以指明你要接收指针。 为此，请将参数类型从 string 更改为 <em>string。 （后者仍是字符串，但现在它是指向字符串 的 指针。）然后，将新值分配给该变量时，需要在该变量的左侧添加星号 (</em>) 以暂停该变量的值。 调用 updateName 函数时，系统不会发送值，而是发送变量的内存地址。 这就是前面的代码在变量左侧带有 &amp; 符号的原因。</p>
+<h3 id="在GO中使用控制流"><a href="#在GO中使用控制流" class="headerlink" title="在GO中使用控制流"></a>在GO中使用控制流</h3><blockquote>
+<p>Go不支持三元if语句(即三元表达式)<br>Go 支持if、Switch、for，Go没有while关键字</p>
+</blockquote>
+<h4 id="defer函数"><a href="#defer函数" class="headerlink" title="defer函数"></a>defer函数</h4><p>在 Go 中，defer 语句会推迟函数（包括任何参数）的运行，直到包含 defer 语句的函数完成。 通常情况下，当你想要避免忘记任务（例如关闭文件或运行清理进程）时，可以推迟某个函数的运行。<br>可以根据需要推迟任意多个函数。 defer 语句按逆序运行，先运行最后一个，最后运行第一个。<br>通过运行以下示例代码来查看此模式的工作原理：</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="string">&quot;fmt&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">for</span> i := <span class="number">1</span>; i &lt;= <span class="number">4</span>; i++ &#123;</span><br><span class="line">        <span class="keyword">defer</span> fmt.Println(<span class="string">&quot;deferred&quot;</span>, -i)</span><br><span class="line">        fmt.Println(<span class="string">&quot;regular&quot;</span>, i)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>下面是代码输出:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">regular 1</span><br><span class="line">regular 2</span><br><span class="line">regular 3</span><br><span class="line">regular 4</span><br><span class="line">deferred -4</span><br><span class="line">deferred -3</span><br><span class="line">deferred -2</span><br><span class="line">deferred -1</span><br></pre></td></tr></table></figure>
+
+<h4 id="panic函数"><a href="#panic函数" class="headerlink" title="panic函数"></a>panic函数</h4><p>运行时错误会使 Go 程序崩溃，例如尝试通过使用超出范围的索引或取消引用 nil 指针来访问数组。 你也可以强制程序崩溃。<br>内置 panic() 函数可以停止 Go 程序中的正常控制流。 当你使用 panic 调用时，任何延迟的函数调用都将正常运行。 进程会在堆栈中继续，直到所有函数都返回。 然后，程序会崩溃并记录日志消息。 此消息包含错误信息和堆栈跟踪，有助于诊断问题的根本原因。<br>调用 panic() 函数时，可以添加任何值作为参数。 通常，你会发送一条错误消息，说明为什么会进入紧急状态。<br>例如，下面的代码将 panic 和 defer 函数组合在一起。 尝试运行此代码以了解控制流的中断。 请注意，清理过程仍会运行。</p>
+<h3 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h3><h4 id="数组"><a href="#数组" class="headerlink" title="数组"></a>数组</h4><p>Go 中的数组是一种特定类型且长度固定的数据结构。 它们可具有零个或多个元素，你必须在声明或初始化它们时定义大小。 此外，它们一旦创建，就无法调整大小。 鉴于这些原因，数组在 Go 程序中并不常用，但它们是切片和映射的基础。</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 初始化数据</span></span><br><span class="line"><span class="keyword">var</span> a [<span class="number">3</span>]<span class="keyword">int</span></span><br><span class="line">cities := [<span class="number">5</span>]<span class="keyword">string</span>&#123;<span class="string">&quot;New York&quot;</span>, <span class="string">&quot;Paris&quot;</span>, <span class="string">&quot;Berlin&quot;</span>, <span class="string">&quot;Madrid&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>数组中的省略号</strong><br>如果你不知道你将需要多少个位置，但知道你将具有多少数据，那么还有一种声明和初始化数组的方法是使用省略号 (…)，如下例所示：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">q := [...]int&#123;1, 2, 3&#125;</span><br><span class="line">cities := [...]string&#123;&quot;New York&quot;, &quot;Paris&quot;, &quot;Berlin&quot;, &quot;Madrid&quot;&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="切片"><a href="#切片" class="headerlink" title="切片"></a>切片</h4><p><strong>数组的长度是固定的，切片的大小是动态的，不固定的</strong><br>切片运算符<code>s[i:p]</code><br>表示s中从下标 startIndex 到 endIndex-1 下的元素创建为一个新的切片<br><strong>注意，切片只能引用元素的子集</strong></p>
+<h4 id="映射"><a href="#映射" class="headerlink" title="映射"></a>映射</h4><p>大体上来说，Go 中的映射是一个哈希表，是键值对的集合。 映射中所有的键都必须具有相同的类型，它们的值也是如此。 不过，可对键和值使用不同的类型。 例如，键可以是数字，值可以是字符串。 若要访问映射中的特定项，可引用该项的键。</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><span class="line">studentsAge := <span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">int</span>&#123;</span><br><span class="line">    <span class="string">&quot;john&quot;</span>: <span class="number">32</span>,</span><br><span class="line">    <span class="string">&quot;bob&quot;</span>:  <span class="number">31</span>,</span><br><span class="line">&#125;</span><br><span class="line">studentsAge := <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">int</span>)</span><br><span class="line">studentsAge[<span class="string">&quot;bob&quot;</span>] = <span class="number">31</span></span><br><span class="line"><span class="built_in">delete</span>(studentsAge, <span class="string">&quot;bob&quot;</span>)</span><br><span class="line"><span class="keyword">for</span> name, age := <span class="keyword">range</span> studentsAge &#123;</span><br><span class="line">    fmt.Printf(<span class="string">&quot;%s\t%d\n&quot;</span>, name, age)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="goroutine"><a href="#goroutine" class="headerlink" title="goroutine"></a>goroutine</h3><p><strong>不是通过共享内存通信，而是通过通信共享内存</strong><br>goroutine 是轻量线程中的并发活动，而不是在操作系统中进行的传统活动。 假设你有一个写入输出的程序和另一个计算两个数字相加的函数。 一个并发程序可以有数个 goroutine 同时调用这两个函数。</p>
+<h3 id="channel"><a href="#channel" class="headerlink" title="channel"></a>channel</h3><h4 id="无缓冲-channel-与有缓冲-channel"><a href="#无缓冲-channel-与有缓冲-channel" class="headerlink" title="无缓冲 channel 与有缓冲 channel"></a>无缓冲 channel 与有缓冲 channel</h4><p>现在，你可能想知道何时使用这两种类型。 这完全取决于你希望 goroutine 之间的通信如何进行。 无缓冲 channel 同步通信。 它们保证每次发送数据时，程序都会被阻止，直到有人从 channel 中读取数据。<br>相反，有缓冲 channel 将发送和接收操作解耦。 它们不会阻止程序，但你必须小心使用，因为可能最终会导致死锁（如前文所述）。 使用无缓冲 channel 时，可以控制可并发运行的 goroutine 的数量。 例如，你可能要对 API 进行调用，并且想要控制每秒执行的调用次数。 否则，你可能会被阻止。</p>
 ]]></content>
       <categories>
-        <category>SHELL</category>
+        <category>GO</category>
       </categories>
+      <tags>
+        <tag>GO教程</tag>
+      </tags>
   </entry>
   <entry>
     <title>for循环中i++和++i的区别和效率</title>
@@ -424,6 +460,126 @@
 ]]></content>
       <categories>
         <category>JS</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>K8S|Secret详解</title>
+    <url>/posts/5a8a6c8d/</url>
+    <content><![CDATA[<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>Secret解决了密码、token、秘钥等敏感数据的配置问题，而不需要把这些敏感数据暴露到镜像或者Pod Spec中。Secret可以以Volume或者环境变量的方式使用。</p>
+<h2 id="Secret类型"><a href="#Secret类型" class="headerlink" title="Secret类型"></a>Secret类型</h2><ul>
+<li>Service Account：用来访问Kubernetes API，由Kubernetes自动创建，并且会自动挂载到Pod的 /run/secrets/kubernetes.io/serviceaccount 目录中。</li>
+<li>Opaque：base64编码格式的Secret，用来存储密码、秘钥等。</li>
+<li>kubernetes.io/dockerconfigjson：用来存储私有docker registry的认证信息。<blockquote>
+<p>本文主要使用Opaque</p>
+</blockquote>
+</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 命令行直接创建</span></span><br><span class="line">kubectl create secret generic my-secret --from-literal=username=root --from-literal=password=root</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 使用文件创建</span></span><br><span class="line">echo -n &quot;root&quot; &gt; ./username</span><br><span class="line">echo -n &quot;root&quot; &gt; ./password</span><br><span class="line">kubectl create secret generic my-secret --from-file=./username --from-file=./password</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 先对字符串进行base64加密</span></span><br><span class="line">echo -n &#x27;root&#x27; | base64</span><br><span class="line">cm9vdA==</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 编辑资源文件</span></span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Secret</span><br><span class="line">metadata:</span><br><span class="line">  name: my-secret</span><br><span class="line">type: Opaque</span><br><span class="line">data:</span><br><span class="line">  username: base64</span><br><span class="line">  password: base64</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 解密</span></span><br><span class="line">kubectl get secrets my-secret -o jsonpath=&quot;&#123;.data.username&#125;&quot; | base64 -d</span><br><span class="line">root</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>K8S</category>
+        <category>Secret</category>
+      </categories>
+      <tags>
+        <tag>K8S</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>kubectl|patch命令使用</title>
+    <url>/posts/e6afd30a/</url>
+    <content><![CDATA[<h2 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h2><p><code>kubectl patch (-f FILENAME | TYPE NAME) -p PATCH</code></p>
+<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Partially update a node using a strategic merge patch. Specify the patch as JSON.</span><br><span class="line">kubectl patch node k8s-node-1 -p &#x27;&#123;&quot;spec&quot;:&#123;&quot;unschedulable&quot;:true&#125;&#125;&#x27;</span><br><span class="line"></span><br><span class="line"># Partially update a node using a strategic merge patch. Specify the patch as YAML.</span><br><span class="line">kubectl patch node k8s-node-1 -p $&#x27;spec:\n unschedulable: true&#x27;</span><br><span class="line"></span><br><span class="line"># Partially update a node identified by the type and name specified in &quot;node.json&quot; using strategic mergepatch.</span><br><span class="line">kubectl patch -f node.json -p &#x27;&#123;&quot;spec&quot;:&#123;&quot;unschedulable&quot;:true&#125;&#125;&#x27;</span><br><span class="line"></span><br><span class="line"># Update a container&#x27;s image; spec.containers[*].name is required because it&#x27;s a merge key.</span><br><span class="line">kubectl patch pod valid-pod -p &#x27;&#123;&quot;spec&quot;:&#123;&quot;containers&quot;:[&#123;&quot;name&quot;:&quot;kubernetes-serve-hostname&quot;,&quot;image&quot;:&quot;newimage&quot;&#125;]&#125;&#125;&#x27;</span><br><span class="line"></span><br><span class="line"># Update a container&#x27;s image using a json patch with positional arrays.</span><br><span class="line">kubectl patch pod valid-pod --type=&#x27;json&#x27; -p=&#x27;[&#123;&quot;op&quot;: &quot;replace&quot;, &quot;path&quot;: &quot;/spec/containers/0/image&quot;,&quot;value&quot;:&quot;newimage&quot;&#125;]&#x27;</span><br></pre></td></tr></table></figure>
+
+<h2 id="参数"><a href="#参数" class="headerlink" title="参数"></a>参数</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">-f, --filename=[]: Filename, directory, or URL to a file identifying the resource to update</span><br><span class="line">    --include-extended-apis[=true]: If true, include definitions of new APIs via calls to the APIserver. [default true]</span><br><span class="line">-o, --output=&quot;&quot;: Output mode. Use &quot;-o name&quot; for shorter output (resource/name).</span><br><span class="line">-p, --patch=&quot;&quot;: The patch to be applied to the resource JSON file.</span><br><span class="line">    --record[=false]: Record current kubectl command in the resource annotation.</span><br><span class="line">-R, --recursive[=false]: Process the directory used in -f, --filename recursively. Useful when you want to manage related manifests organized within the same directory.</span><br><span class="line">    --type=&quot;strategic&quot;: The type of patch being provided; one of [json merge strategic]</span><br></pre></td></tr></table></figure>
+
+<p><strong>//TODO 增加一些实战示例</strong></p>
+]]></content>
+      <categories>
+        <category>K8S</category>
+      </categories>
+      <tags>
+        <tag>kubectl命令</tag>
+        <tag>TODO</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>K8S中port|nodePort|targetPort概念的区分</title>
+    <url>/posts/68b4a711/</url>
+    <content><![CDATA[<h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><ul>
+<li>port是service的端口</li>
+<li>targetPort是容器的端口</li>
+<li>nodePort是容器所在宿主机的端口</li>
+</ul>
+<span id="more"></span>
+
+<h2 id="作用"><a href="#作用" class="headerlink" title="作用"></a>作用</h2><h3 id="port"><a href="#port" class="headerlink" title="port"></a>port</h3><p>集群内部服务暴露的端口，可以使用clusterIp:port来访问pod暴露的服务</p>
+<h3 id="targetPort"><a href="#targetPort" class="headerlink" title="targetPort"></a>targetPort</h3><p>最终容器上面暴露的服务端口，应用监听的端口</p>
+<h3 id="nodePort"><a href="#nodePort" class="headerlink" title="nodePort"></a>nodePort</h3><p>当服务类型为NodePort时，会在每个节点上暴露一个端口,可以他通过nodeIp:nodePort从集群外部访问服务。<br>nodeport默认端口范围为(30000-32767)</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>nodePort集群外部访问,pod为集群内部pod相互通信端口,targetPort字面意思就是容器暴露端口。</p>
+]]></content>
+      <categories>
+        <category>K8S</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>通过nodejs查看http的STAUS_CODE</title>
+    <url>/posts/9a2f555f/</url>
+    <content><![CDATA[<p>HTTP核心模块是Node.js网络的关键模块,该模块提供了一些属性、方法以及类。<br><code>http.STATUS_CODES此属性列出了所有的HTTP状态代码以及其描述</code></p>
+<span id="more"></span>
+
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">❯ node</span><br><span class="line">Welcome to Node.js v14.17.3.</span><br><span class="line">Type &quot;.help&quot; for more information.</span><br><span class="line"><span class="meta">&gt;</span><span class="bash"> require(<span class="string">&#x27;http&#x27;</span>).STATUS_CODES</span></span><br><span class="line">&#123;</span><br><span class="line">  &#x27;100&#x27;: &#x27;Continue&#x27;,</span><br><span class="line">  &#x27;101&#x27;: &#x27;Switching Protocols&#x27;,</span><br><span class="line">  &#x27;102&#x27;: &#x27;Processing&#x27;,</span><br><span class="line">  &#x27;103&#x27;: &#x27;Early Hints&#x27;,</span><br><span class="line">  &#x27;200&#x27;: &#x27;OK&#x27;,</span><br><span class="line">  &#x27;201&#x27;: &#x27;Created&#x27;,</span><br><span class="line">  &#x27;202&#x27;: &#x27;Accepted&#x27;,</span><br><span class="line">  &#x27;203&#x27;: &#x27;Non-Authoritative Information&#x27;,</span><br><span class="line">  &#x27;204&#x27;: &#x27;No Content&#x27;,</span><br><span class="line">  &#x27;205&#x27;: &#x27;Reset Content&#x27;,</span><br><span class="line">  &#x27;206&#x27;: &#x27;Partial Content&#x27;,</span><br><span class="line">  &#x27;207&#x27;: &#x27;Multi-Status&#x27;,</span><br><span class="line">  &#x27;208&#x27;: &#x27;Already Reported&#x27;,</span><br><span class="line">  &#x27;226&#x27;: &#x27;IM Used&#x27;,</span><br><span class="line">  &#x27;300&#x27;: &#x27;Multiple Choices&#x27;,</span><br><span class="line">  &#x27;301&#x27;: &#x27;Moved Permanently&#x27;,</span><br><span class="line">  &#x27;302&#x27;: &#x27;Found&#x27;,</span><br><span class="line">  &#x27;303&#x27;: &#x27;See Other&#x27;,</span><br><span class="line">  &#x27;304&#x27;: &#x27;Not Modified&#x27;,</span><br><span class="line">  &#x27;305&#x27;: &#x27;Use Proxy&#x27;,</span><br><span class="line">  &#x27;307&#x27;: &#x27;Temporary Redirect&#x27;,</span><br><span class="line">  &#x27;308&#x27;: &#x27;Permanent Redirect&#x27;,</span><br><span class="line">  &#x27;400&#x27;: &#x27;Bad Request&#x27;,</span><br><span class="line">  &#x27;401&#x27;: &#x27;Unauthorized&#x27;,</span><br><span class="line">  &#x27;402&#x27;: &#x27;Payment Required&#x27;,</span><br><span class="line">  &#x27;403&#x27;: &#x27;Forbidden&#x27;,</span><br><span class="line">  &#x27;404&#x27;: &#x27;Not Found&#x27;,</span><br><span class="line">  &#x27;405&#x27;: &#x27;Method Not Allowed&#x27;,</span><br><span class="line">  &#x27;406&#x27;: &#x27;Not Acceptable&#x27;,</span><br><span class="line">  &#x27;407&#x27;: &#x27;Proxy Authentication Required&#x27;,</span><br><span class="line">  &#x27;408&#x27;: &#x27;Request Timeout&#x27;,</span><br><span class="line">  &#x27;409&#x27;: &#x27;Conflict&#x27;,</span><br><span class="line">  &#x27;410&#x27;: &#x27;Gone&#x27;,</span><br><span class="line">  &#x27;411&#x27;: &#x27;Length Required&#x27;,</span><br><span class="line">  &#x27;412&#x27;: &#x27;Precondition Failed&#x27;,</span><br><span class="line">  &#x27;413&#x27;: &#x27;Payload Too Large&#x27;,</span><br><span class="line">  &#x27;414&#x27;: &#x27;URI Too Long&#x27;,</span><br><span class="line">  &#x27;415&#x27;: &#x27;Unsupported Media Type&#x27;,</span><br><span class="line">  &#x27;416&#x27;: &#x27;Range Not Satisfiable&#x27;,</span><br><span class="line">  &#x27;417&#x27;: &#x27;Expectation Failed&#x27;,</span><br><span class="line">  &#x27;418&#x27;: &quot;I&#x27;m a Teapot&quot;,</span><br><span class="line">  &#x27;421&#x27;: &#x27;Misdirected Request&#x27;,</span><br><span class="line">  &#x27;422&#x27;: &#x27;Unprocessable Entity&#x27;,</span><br><span class="line">  &#x27;423&#x27;: &#x27;Locked&#x27;,</span><br><span class="line">  &#x27;424&#x27;: &#x27;Failed Dependency&#x27;,</span><br><span class="line">  &#x27;425&#x27;: &#x27;Too Early&#x27;,</span><br><span class="line">  &#x27;426&#x27;: &#x27;Upgrade Required&#x27;,</span><br><span class="line">  &#x27;428&#x27;: &#x27;Precondition Required&#x27;,</span><br><span class="line">  &#x27;429&#x27;: &#x27;Too Many Requests&#x27;,</span><br><span class="line">  &#x27;431&#x27;: &#x27;Request Header Fields Too Large&#x27;,</span><br><span class="line">  &#x27;451&#x27;: &#x27;Unavailable For Legal Reasons&#x27;,</span><br><span class="line">  &#x27;500&#x27;: &#x27;Internal Server Error&#x27;,</span><br><span class="line">  &#x27;501&#x27;: &#x27;Not Implemented&#x27;,</span><br><span class="line">  &#x27;502&#x27;: &#x27;Bad Gateway&#x27;,</span><br><span class="line">  &#x27;503&#x27;: &#x27;Service Unavailable&#x27;,</span><br><span class="line">  &#x27;504&#x27;: &#x27;Gateway Timeout&#x27;,</span><br><span class="line">  &#x27;505&#x27;: &#x27;HTTP Version Not Supported&#x27;,</span><br><span class="line">  &#x27;506&#x27;: &#x27;Variant Also Negotiates&#x27;,</span><br><span class="line">  &#x27;507&#x27;: &#x27;Insufficient Storage&#x27;,</span><br><span class="line">  &#x27;508&#x27;: &#x27;Loop Detected&#x27;,</span><br><span class="line">  &#x27;509&#x27;: &#x27;Bandwidth Limit Exceeded&#x27;,</span><br><span class="line">  &#x27;510&#x27;: &#x27;Not Extended&#x27;,</span><br><span class="line">  &#x27;511&#x27;: &#x27;Network Authentication Required&#x27;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>NODEJS</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Linux命令|cut</title>
+    <url>/posts/5b806bba/</url>
+    <content><![CDATA[<h1 id="cut"><a href="#cut" class="headerlink" title="cut"></a>cut</h1><h1 id="参数"><a href="#参数" class="headerlink" title="参数"></a>参数</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">-b ：以字节为单位进行分割。这些字节位置将忽略多字节字符边界，除非也指定了 -n 标志。</span><br><span class="line">-c ：以字符为单位进行分割。</span><br><span class="line">-d ：自定义分隔符，默认为制表符。</span><br><span class="line">-f ：与-d一起使用，指定显示哪个区域。</span><br><span class="line">-n ：取消分割多字节字符。仅和 -b 标志一起使用。如果字符的最后一个字节落在由 -b 标志的 List 参数指示的范围之内，该字符将被写出；否则，该字符将被排除</span><br></pre></td></tr></table></figure>
+<h1 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h1><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ping www.baidu.com  -c1 | grep PING | cut -d &#x27;(&#x27; -f2| cut -d &#x27;)&#x27; -f1</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Linux命令</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Linux命令|yq</title>
+    <url>/posts/e6efe92f/</url>
+    <content><![CDATA[<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>yq是一个yaml的命令行解析工具。他有点像jq处理json一样。</p>
+<blockquote>
+<p>当前版本为4.x,4版本和3版本相差很大，请注意语法。</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Usage:</span><br><span class="line">  yq [flags]</span><br><span class="line">  yq [command]</span><br><span class="line"></span><br><span class="line">Available Commands:</span><br><span class="line">  eval             Apply the expression to each document in each yaml file in sequence</span><br><span class="line">  eval-all         Loads _all_ yaml documents of _all_ yaml files and runs expression once</span><br><span class="line">  help             Help about any command</span><br><span class="line">  shell-completion Generate completion script</span><br><span class="line"></span><br><span class="line">Flags:</span><br><span class="line">  -C, --colors                force print with colors</span><br><span class="line">  -e, --exit-status           set exit status if there are no matches or null or false is returned</span><br><span class="line">  -f, --front-matter string   (extract|process) first input as yaml front-matter. Extract will pull out the yaml content, process will run the expression against the yaml content, leaving the remaining data intact</span><br><span class="line">  -h, --help                  help for yq</span><br><span class="line">  -I, --indent int            sets indent level for output (default 2)</span><br><span class="line">  -i, --inplace               update the yaml file inplace of first yaml file given.</span><br><span class="line">  -M, --no-colors             force print with no colors</span><br><span class="line">  -N, --no-doc                Don&#x27;t print document separators (---)</span><br><span class="line">  -n, --null-input            Don&#x27;t read input, simply evaluate the expression given. Useful for creating yaml docs from scratch.</span><br><span class="line">  -P, --prettyPrint           pretty print, shorthand for &#x27;... style = &quot;&quot;&#x27;</span><br><span class="line">  -j, --tojson                output as json. Set indent to 0 to print json in one line.</span><br><span class="line">      --unwrapScalar          unwrap scalar, print the value with no quotes, colors or comments (default true)</span><br><span class="line">  -v, --verbose               verbose mode</span><br><span class="line">  -V, --version               Print version information and quit</span><br><span class="line"></span><br><span class="line">Use &quot;yq [command] --help&quot; for more information about a command.</span><br></pre></td></tr></table></figure>
+
+<p><strong>//TODO 补充实例</strong></p>
+]]></content>
+      <categories>
+        <category>Linux</category>
+      </categories>
+      <tags>
+        <tag>TODO</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>SHELL参数的含义</title>
+    <url>/posts/1b4c4aa3/</url>
+    <content><![CDATA[<ul>
+<li>$0<br>当前脚本的文件名</li>
+<li>$n<br>传递给脚本或函数的参数。n 是一个数字，表示第几个参数。例如，第一个参数是$1，第二个参数是$2。</li>
+<li>$#<br>传递给脚本或函数的参数个数。</li>
+<li>$*<br>传递给脚本或函数的所有参数。</li>
+<li>$@<br>传递给脚本或函数的所有参数。</li>
+<li>$* 和 $@ 的区别<ul>
+<li>$* 和 $@ 都表示传递给函数或脚本的所有参数，不被双引号(“ “)包含时，都以”$1” “2” “n” 的形式输出所有参数</li>
+<li>当它们被双引号(“ “)包含时，”$*” 会将所有的参数作为一个整体，以”$1 $2 … n”的形式输出所有参数；”n”的形式输出所有参数；”n”的形式输出所有参数；”@” 会将各个参数分开，以”$1” “2”…”n” 的形式输出所有参数。</li>
+</ul>
+</li>
+<li>$?<br>上个命令的退出状态，或函数的返回值。</li>
+<li>$$<br>当前Shell进程ID。对于 Shell 脚本，就是这些脚本所在的进程ID</li>
+</ul>
+]]></content>
+      <categories>
+        <category>SHELL</category>
       </categories>
   </entry>
   <entry>
