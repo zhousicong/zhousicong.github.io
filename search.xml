@@ -49,6 +49,34 @@
       </tags>
   </entry>
   <entry>
+    <title>argo-combined-demo</title>
+    <url>/posts/612a1ead/</url>
+    <content><![CDATA[<blockquote>
+<p>Automation of Every - How To combine Argo Events, Workflow &amp; CD</p>
+</blockquote>
+<span id="more"></span>
+<p><img src="https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202108251511952.png" alt="process"></p>
+]]></content>
+      <categories>
+        <category>Argo</category>
+      </categories>
+      <tags>
+        <tag>Argo</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>s3-exporter实现</title>
+    <url>/posts/f7f721f2/</url>
+    <content><![CDATA[<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"> <span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;context&quot;</span></span><br><span class="line">	<span class="string">&quot;encoding/json&quot;</span></span><br><span class="line">	<span class="string">&quot;flag&quot;</span></span><br><span class="line">	<span class="string">&quot;fmt&quot;</span></span><br><span class="line">	<span class="string">&quot;log&quot;</span></span><br><span class="line">	<span class="string">&quot;net/http&quot;</span></span><br><span class="line">	<span class="string">&quot;os/exec&quot;</span></span><br><span class="line">	<span class="string">&quot;strconv&quot;</span></span><br><span class="line">	<span class="string">&quot;sync&quot;</span></span><br><span class="line">	<span class="string">&quot;time&quot;</span></span><br><span class="line"></span><br><span class="line">	<span class="string">&quot;github.com/prometheus/client_golang/prometheus&quot;</span></span><br><span class="line">	<span class="string">&quot;github.com/prometheus/client_golang/prometheus/promhttp&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> (</span><br><span class="line">	rootDir <span class="keyword">string</span></span><br><span class="line">	depth   <span class="keyword">int</span></span><br><span class="line">	port    <span class="keyword">int</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> BucketUsage <span class="keyword">struct</span> &#123;</span><br><span class="line">	Bucket <span class="keyword">string</span> <span class="string">`json:&quot;bucket&quot;`</span></span><br><span class="line">	Owner  <span class="keyword">string</span> <span class="string">`json:&quot;owner&quot;`</span></span><br><span class="line">	Usage  <span class="keyword">struct</span> &#123;</span><br><span class="line">		RGWMain <span class="keyword">struct</span> &#123;</span><br><span class="line">			Size         <span class="keyword">float64</span> <span class="string">`json:&quot;size&quot;`</span></span><br><span class="line">			SizeActual   <span class="keyword">float64</span> <span class="string">`json:&quot;size_actual&quot;`</span></span><br><span class="line">			SizeUtilized <span class="keyword">float64</span> <span class="string">`json:&quot;size_utilized&quot;`</span></span><br><span class="line">			NumObjects   <span class="keyword">float64</span> <span class="string">`json:&quot;num_objects&quot;`</span></span><br><span class="line">		&#125; <span class="string">`json:&quot;rgw.main&quot;`</span></span><br><span class="line">	&#125; <span class="string">`json:&quot;usage&quot;`</span></span><br><span class="line">	BucketQuota <span class="keyword">struct</span> &#123;</span><br><span class="line">		Enable     <span class="keyword">bool</span>    <span class="string">`json:&quot;enabled&quot;`</span></span><br><span class="line">		MaxSize    <span class="keyword">float64</span> <span class="string">`json:&quot;max_size&quot;`</span></span><br><span class="line">		MaxSizeKB  <span class="keyword">float64</span> <span class="string">`json:&quot;max_size_kb&quot;`</span></span><br><span class="line">		MaxObjects <span class="keyword">float64</span> <span class="string">`json:&quot;max_objects&quot;`</span></span><br><span class="line">	&#125; <span class="string">`json:&quot;bucket_quota&quot;`</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> namespace <span class="keyword">string</span> = <span class="string">&quot;unionstor_radosgw_usage&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> Collector <span class="keyword">struct</span> &#123;</span><br><span class="line">	mu                      sync.Mutex</span><br><span class="line">	BucketSizeBytes         *prometheus.GaugeVec</span><br><span class="line">	BucketSizeUtilizedBytes *prometheus.GaugeVec</span><br><span class="line">	BucketNumsObjects       *prometheus.GaugeVec</span><br><span class="line">	BucketQuotaEnable       *prometheus.GaugeVec</span><br><span class="line">	BucketQuotaMaxSize      *prometheus.GaugeVec</span><br><span class="line">	BucketQuotaMaxSizeBytes *prometheus.GaugeVec</span><br><span class="line">	BucketQuotaMaxObjects   *prometheus.GaugeVec</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">exec_cmd</span><span class="params">(command <span class="keyword">string</span>, timeout <span class="keyword">int</span>)</span> <span class="params">([]<span class="keyword">byte</span>, error)</span></span> &#123;</span><br><span class="line">	ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(timeout))</span><br><span class="line">	<span class="keyword">defer</span> cancel()</span><br><span class="line"></span><br><span class="line">	cmd := exec.CommandContext(ctx, <span class="string">&quot;bash&quot;</span>, <span class="string">&quot;-c&quot;</span>, command)</span><br><span class="line">	out, err := cmd.CombinedOutput()</span><br><span class="line">	<span class="keyword">return</span> out, err</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewCollector</span><span class="params">()</span> *<span class="title">Collector</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> &amp;Collector&#123;</span><br><span class="line">		BucketSizeBytes: prometheus.NewGaugeVec(prometheus.GaugeOpts&#123;</span><br><span class="line">			Namespace: namespace,</span><br><span class="line">			Name:      <span class="string">&quot;bucket_size_bytes&quot;</span>,</span><br><span class="line">			Help:      <span class="string">&quot;bucket_size_bytes&quot;</span>,</span><br><span class="line">		&#125;, []<span class="keyword">string</span>&#123;<span class="string">&quot;bucket&quot;</span>, <span class="string">&quot;owner&quot;</span>&#125;),</span><br><span class="line">		BucketSizeUtilizedBytes: prometheus.NewGaugeVec(prometheus.GaugeOpts&#123;</span><br><span class="line">			Namespace: namespace,</span><br><span class="line">			Name:      <span class="string">&quot;bucket_size_utilized_bytes&quot;</span>,</span><br><span class="line">			Help:      <span class="string">&quot;bucket_size_utilized_bytes&quot;</span>,</span><br><span class="line">		&#125;, []<span class="keyword">string</span>&#123;<span class="string">&quot;bucket&quot;</span>, <span class="string">&quot;owner&quot;</span>&#125;),</span><br><span class="line">		BucketNumsObjects: prometheus.NewGaugeVec(prometheus.GaugeOpts&#123;</span><br><span class="line">			Namespace: namespace,</span><br><span class="line">			Name:      <span class="string">&quot;bucket_num_objects&quot;</span>,</span><br><span class="line">			Help:      <span class="string">&quot;bucket_num_objects&quot;</span>,</span><br><span class="line">		&#125;, []<span class="keyword">string</span>&#123;<span class="string">&quot;bucket&quot;</span>, <span class="string">&quot;owner&quot;</span>&#125;),</span><br><span class="line">		BucketQuotaEnable: prometheus.NewGaugeVec(prometheus.GaugeOpts&#123;</span><br><span class="line">			Namespace: namespace,</span><br><span class="line">			Name:      <span class="string">&quot;bucket_quota_enable&quot;</span>,</span><br><span class="line">			Help:      <span class="string">&quot;bucket_quota_enable&quot;</span>,</span><br><span class="line">		&#125;, []<span class="keyword">string</span>&#123;<span class="string">&quot;bucket&quot;</span>, <span class="string">&quot;owner&quot;</span>&#125;),</span><br><span class="line">		BucketQuotaMaxSize: prometheus.NewGaugeVec(prometheus.GaugeOpts&#123;</span><br><span class="line">			Namespace: namespace,</span><br><span class="line">			Name:      <span class="string">&quot;bucket_quota_max_size&quot;</span>,</span><br><span class="line">			Help:      <span class="string">&quot;bucket_quota_max_size&quot;</span>,</span><br><span class="line">		&#125;, []<span class="keyword">string</span>&#123;<span class="string">&quot;bucket&quot;</span>, <span class="string">&quot;owner&quot;</span>&#125;),</span><br><span class="line">		BucketQuotaMaxSizeBytes: prometheus.NewGaugeVec(prometheus.GaugeOpts&#123;</span><br><span class="line">			Namespace: namespace,</span><br><span class="line">			Name:      <span class="string">&quot;bucket_quota_max_size_bytes&quot;</span>,</span><br><span class="line">			Help:      <span class="string">&quot;bucket_quota_max_size_bytes&quot;</span>,</span><br><span class="line">		&#125;, []<span class="keyword">string</span>&#123;<span class="string">&quot;bucket&quot;</span>, <span class="string">&quot;owner&quot;</span>&#125;),</span><br><span class="line">		BucketQuotaMaxObjects: prometheus.NewGaugeVec(prometheus.GaugeOpts&#123;</span><br><span class="line">			Namespace: namespace,</span><br><span class="line">			Name:      <span class="string">&quot;bucket_quota_max_objects&quot;</span>,</span><br><span class="line">			Help:      <span class="string">&quot;bucket_quota_max_objects&quot;</span>,</span><br><span class="line">		&#125;, []<span class="keyword">string</span>&#123;<span class="string">&quot;bucket&quot;</span>, <span class="string">&quot;owner&quot;</span>&#125;),</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Collector)</span> <span class="title">collectorList</span><span class="params">()</span> []<span class="title">prometheus</span>.<span class="title">Collector</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> []prometheus.Collector&#123;</span><br><span class="line">		c.BucketSizeBytes,</span><br><span class="line">		c.BucketSizeUtilizedBytes,</span><br><span class="line">		c.BucketNumsObjects,</span><br><span class="line">		c.BucketQuotaEnable,</span><br><span class="line">		c.BucketQuotaMaxSize,</span><br><span class="line">		c.BucketQuotaMaxSizeBytes,</span><br><span class="line">		c.BucketQuotaMaxObjects,</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Collector)</span> <span class="title">Describe</span><span class="params">(ch <span class="keyword">chan</span>&lt;- *prometheus.Desc)</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> _, metric := <span class="keyword">range</span> c.collectorList() &#123;</span><br><span class="line">		metric.Describe(ch)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Collector)</span> <span class="title">Collect</span><span class="params">(ch <span class="keyword">chan</span>&lt;- prometheus.Metric)</span></span> &#123;</span><br><span class="line">	c.mu.Lock()</span><br><span class="line">	<span class="keyword">defer</span> c.mu.Unlock()</span><br><span class="line">	<span class="keyword">if</span> err := c.collect(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Println(err.Error())</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> _, metric := <span class="keyword">range</span> c.collectorList() &#123;</span><br><span class="line">		metric.Collect(ch)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Collector)</span> <span class="title">collect</span><span class="params">()</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	cmd := <span class="string">&quot;radosgw-admin bucket stats&quot;</span></span><br><span class="line">	cmdRet, err := exec_cmd(cmd, <span class="number">30</span>)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		fmt.Println(<span class="string">&quot;exec bucket stats error:&quot;</span>, err)</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	bucketsUsage := []BucketUsage&#123;&#125;</span><br><span class="line">	err = json.Unmarshal(cmdRet, &amp;bucketsUsage)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		fmt.Println(<span class="string">&quot;parse cmd returen error:&quot;</span>, err)</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	c.BucketSizeBytes.Reset()</span><br><span class="line">	c.BucketSizeUtilizedBytes.Reset()</span><br><span class="line">	c.BucketNumsObjects.Reset()</span><br><span class="line">	c.BucketQuotaEnable.Reset()</span><br><span class="line">	c.BucketQuotaMaxSize.Reset()</span><br><span class="line">	c.BucketQuotaMaxSizeBytes.Reset()</span><br><span class="line">	c.BucketQuotaMaxObjects.Reset()</span><br><span class="line">	<span class="keyword">for</span> _, bucketUsage := <span class="keyword">range</span> bucketsUsage &#123;</span><br><span class="line">		bucketName := bucketUsage.Bucket</span><br><span class="line">		bucketOwner := bucketUsage.Owner</span><br><span class="line">		bucketSizeBytes := bucketUsage.Usage.RGWMain.SizeActual</span><br><span class="line">		bucketSizeUtilizedBytes := bucketUsage.Usage.RGWMain.SizeUtilized</span><br><span class="line">		bucketObjects := bucketUsage.Usage.RGWMain.NumObjects</span><br><span class="line">		<span class="keyword">var</span> bucketQuotaEnable <span class="keyword">float64</span> = <span class="number">0</span></span><br><span class="line">		<span class="keyword">if</span> bucketUsage.BucketQuota.Enable &#123;</span><br><span class="line">			bucketQuotaEnable = <span class="number">1</span></span><br><span class="line">		&#125;</span><br><span class="line">		bucketQuotaMaxSize := bucketUsage.BucketQuota.MaxSize</span><br><span class="line">		bucketQuotaMaxSizeBytes := bucketUsage.BucketQuota.MaxSizeKB</span><br><span class="line">		bucketQuotaMaxObjects := bucketUsage.BucketQuota.MaxObjects</span><br><span class="line">		c.BucketSizeBytes.WithLabelValues(bucketName, bucketOwner).Set(bucketSizeBytes)</span><br><span class="line">		c.BucketSizeUtilizedBytes.WithLabelValues(bucketName, bucketOwner).Set(bucketSizeUtilizedBytes)</span><br><span class="line">		c.BucketNumsObjects.WithLabelValues(bucketName, bucketOwner).Set(bucketObjects)</span><br><span class="line">		c.BucketQuotaEnable.WithLabelValues(bucketName, bucketOwner).Set(bucketQuotaEnable)</span><br><span class="line">		c.BucketQuotaMaxSize.WithLabelValues(bucketName, bucketOwner).Set(bucketQuotaMaxSize)</span><br><span class="line">		c.BucketQuotaMaxSizeBytes.WithLabelValues(bucketName, bucketOwner).Set(bucketQuotaMaxSizeBytes)</span><br><span class="line">		c.BucketQuotaMaxObjects.WithLabelValues(bucketName, bucketOwner).Set(bucketQuotaMaxObjects)</span><br><span class="line"></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	flag.StringVar(&amp;rootDir, <span class="string">&quot;path&quot;</span>, <span class="string">&quot;/&quot;</span>, <span class="string">&quot;A cephfs path&quot;</span>)</span><br><span class="line">	flag.IntVar(&amp;depth, <span class="string">&quot;depth&quot;</span>, <span class="number">2</span>, <span class="string">&quot;default depth&quot;</span>)</span><br><span class="line">	flag.IntVar(&amp;port, <span class="string">&quot;port&quot;</span>, <span class="number">8080</span>, <span class="string">&quot;default exporter port&quot;</span>)</span><br><span class="line">	flag.Parse()</span><br><span class="line">	prometheus.MustRegister(NewCollector())</span><br><span class="line">	http.Handle(<span class="string">&quot;/metrics&quot;</span>, promhttp.Handler())</span><br><span class="line">	log.Fatal(http.ListenAndServe(<span class="string">&quot;:&quot;</span>+strconv.Itoa(port), <span class="literal">nil</span>))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>CEPH</category>
+        <category>S3</category>
+      </categories>
+      <tags>
+        <tag>监控</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Argo Events实战|安装部署</title>
     <url>/posts/ae06cf7a/</url>
     <content><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>Argo Events是Kubernetes的事件驱动的工作流自动化框架.</p>
@@ -125,6 +153,44 @@
       </tags>
   </entry>
   <entry>
+    <title>CEPH客户端版本升级</title>
+    <url>/posts/bab85c8a/</url>
+    <content><![CDATA[<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">wget -q -O- &#x27;https://download.ceph.com/keys/release.asc&#x27; | sudo apt-key add -</span><br><span class="line">echo deb https://download.ceph.com/debian-nautilus/ $(lsb_release -sc) main | sudo tee /etc/apt/sources.list.d/ceph.list</span><br><span class="line">apt update</span><br><span class="line">apt install ceph-common</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>CEPH</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Golang开发环境配置</title>
+    <url>/posts/b66fdee6/</url>
+    <content><![CDATA[<h2 id="开发环境搭建"><a href="#开发环境搭建" class="headerlink" title="开发环境搭建"></a>开发环境搭建</h2><hr>
+<h3 id="安装Golang"><a href="#安装Golang" class="headerlink" title="安装Golang"></a>安装Golang</h3><ol>
+<li>Golang<a href="https://golang.org/">官网</a>,进入下载页面，选择对应的版本进行下载安装</li>
+<li>mac可以通过Homebrew <code>brew install go</code>进行安装</li>
+</ol>
+<blockquote>
+<p>安装完成后可以通过运行<code>go env</code>查看是否安装成功</p>
+</blockquote>
+<h3 id="关于GOROOT和GOPATH"><a href="#关于GOROOT和GOPATH" class="headerlink" title="关于GOROOT和GOPATH"></a>关于GOROOT和GOPATH</h3><h4 id="GOROOT"><a href="#GOROOT" class="headerlink" title="GOROOT"></a>GOROOT</h4><p>GOROOT就是你go的安装目录,使用Homebrew安装对应的目录就是<font color="DeepPink">/usr/local/Cellar/go/1.16.5/libexec</font>。</p>
+<h4 id="GOPATH"><a href="#GOPATH" class="headerlink" title="GOPATH"></a>GOPATH</h4><p>GOPATH是go的工作目录。谈GOPATH时需要引入一个环境变量<code>GO111MODULE</code>。<br>写本文时的go安装版本为1.16.5。GO111MODULE的参数为off、on和auto,其不同值的表现行为如下:</p>
+<ul>
+<li>auto (默认值)<ul>
+<li>当项目路径(go.mod)在GOPATH外时，其行为等同于GO111MODULE=on。这意味着可以将代码仓库存储于GOPATH之外</li>
+<li>当项目路径在GOPATH内，并且没有go.mod文件存在时，其行为等同于GO111MODULE=off</li>
+</ul>
+</li>
+<li>off<br>无模块支持，go会从GOPATH和vender文件夹寻找包</li>
+<li>on<br>模块支持,go会忽略GOPATH和vender文件夹，只根据<font color="DeepPink">go.mod</font>下载依赖。</li>
+</ul>
+]]></content>
+      <categories>
+        <category>GO</category>
+      </categories>
+      <tags>
+        <tag>GO</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Argo Workflow实践|安装部署</title>
     <url>/posts/1e633edc/</url>
     <content><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>　　Argo Workflow是一个云原生的工作流引擎，专注于编排并行任务。特点如下:</p>
@@ -162,42 +228,6 @@
       </categories>
       <tags>
         <tag>Argo</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>argo-combined-demo</title>
-    <url>/posts/612a1ead/</url>
-    <content><![CDATA[<blockquote>
-<p>Automation of Every - How To combine Argo Events, Workflow &amp; CD</p>
-</blockquote>
-<span id="more"></span>
-<p><img src="https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202108251511952.png" alt="process"></p>
-]]></content>
-      <categories>
-        <category>Argo</category>
-      </categories>
-      <tags>
-        <tag>Argo</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>CEPH客户端版本升级</title>
-    <url>/posts/bab85c8a/</url>
-    <content><![CDATA[<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">wget -q -O- &#x27;https://download.ceph.com/keys/release.asc&#x27; | sudo apt-key add -</span><br><span class="line">echo deb https://download.ceph.com/debian-nautilus/ $(lsb_release -sc) main | sudo tee /etc/apt/sources.list.d/ceph.list</span><br><span class="line">apt update</span><br><span class="line">apt install ceph-common</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>CEPH</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>s3-exporter实现</title>
-    <url>/posts/f7f721f2/</url>
-    <content><![CDATA[<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"> <span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;context&quot;</span></span><br><span class="line">	<span class="string">&quot;encoding/json&quot;</span></span><br><span class="line">	<span class="string">&quot;flag&quot;</span></span><br><span class="line">	<span class="string">&quot;fmt&quot;</span></span><br><span class="line">	<span class="string">&quot;log&quot;</span></span><br><span class="line">	<span class="string">&quot;net/http&quot;</span></span><br><span class="line">	<span class="string">&quot;os/exec&quot;</span></span><br><span class="line">	<span class="string">&quot;strconv&quot;</span></span><br><span class="line">	<span class="string">&quot;sync&quot;</span></span><br><span class="line">	<span class="string">&quot;time&quot;</span></span><br><span class="line"></span><br><span class="line">	<span class="string">&quot;github.com/prometheus/client_golang/prometheus&quot;</span></span><br><span class="line">	<span class="string">&quot;github.com/prometheus/client_golang/prometheus/promhttp&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> (</span><br><span class="line">	rootDir <span class="keyword">string</span></span><br><span class="line">	depth   <span class="keyword">int</span></span><br><span class="line">	port    <span class="keyword">int</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> BucketUsage <span class="keyword">struct</span> &#123;</span><br><span class="line">	Bucket <span class="keyword">string</span> <span class="string">`json:&quot;bucket&quot;`</span></span><br><span class="line">	Owner  <span class="keyword">string</span> <span class="string">`json:&quot;owner&quot;`</span></span><br><span class="line">	Usage  <span class="keyword">struct</span> &#123;</span><br><span class="line">		RGWMain <span class="keyword">struct</span> &#123;</span><br><span class="line">			Size         <span class="keyword">float64</span> <span class="string">`json:&quot;size&quot;`</span></span><br><span class="line">			SizeActual   <span class="keyword">float64</span> <span class="string">`json:&quot;size_actual&quot;`</span></span><br><span class="line">			SizeUtilized <span class="keyword">float64</span> <span class="string">`json:&quot;size_utilized&quot;`</span></span><br><span class="line">			NumObjects   <span class="keyword">float64</span> <span class="string">`json:&quot;num_objects&quot;`</span></span><br><span class="line">		&#125; <span class="string">`json:&quot;rgw.main&quot;`</span></span><br><span class="line">	&#125; <span class="string">`json:&quot;usage&quot;`</span></span><br><span class="line">	BucketQuota <span class="keyword">struct</span> &#123;</span><br><span class="line">		Enable     <span class="keyword">bool</span>    <span class="string">`json:&quot;enabled&quot;`</span></span><br><span class="line">		MaxSize    <span class="keyword">float64</span> <span class="string">`json:&quot;max_size&quot;`</span></span><br><span class="line">		MaxSizeKB  <span class="keyword">float64</span> <span class="string">`json:&quot;max_size_kb&quot;`</span></span><br><span class="line">		MaxObjects <span class="keyword">float64</span> <span class="string">`json:&quot;max_objects&quot;`</span></span><br><span class="line">	&#125; <span class="string">`json:&quot;bucket_quota&quot;`</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> namespace <span class="keyword">string</span> = <span class="string">&quot;unionstor_radosgw_usage&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> Collector <span class="keyword">struct</span> &#123;</span><br><span class="line">	mu                      sync.Mutex</span><br><span class="line">	BucketSizeBytes         *prometheus.GaugeVec</span><br><span class="line">	BucketSizeUtilizedBytes *prometheus.GaugeVec</span><br><span class="line">	BucketNumsObjects       *prometheus.GaugeVec</span><br><span class="line">	BucketQuotaEnable       *prometheus.GaugeVec</span><br><span class="line">	BucketQuotaMaxSize      *prometheus.GaugeVec</span><br><span class="line">	BucketQuotaMaxSizeBytes *prometheus.GaugeVec</span><br><span class="line">	BucketQuotaMaxObjects   *prometheus.GaugeVec</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">exec_cmd</span><span class="params">(command <span class="keyword">string</span>, timeout <span class="keyword">int</span>)</span> <span class="params">([]<span class="keyword">byte</span>, error)</span></span> &#123;</span><br><span class="line">	ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(timeout))</span><br><span class="line">	<span class="keyword">defer</span> cancel()</span><br><span class="line"></span><br><span class="line">	cmd := exec.CommandContext(ctx, <span class="string">&quot;bash&quot;</span>, <span class="string">&quot;-c&quot;</span>, command)</span><br><span class="line">	out, err := cmd.CombinedOutput()</span><br><span class="line">	<span class="keyword">return</span> out, err</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewCollector</span><span class="params">()</span> *<span class="title">Collector</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> &amp;Collector&#123;</span><br><span class="line">		BucketSizeBytes: prometheus.NewGaugeVec(prometheus.GaugeOpts&#123;</span><br><span class="line">			Namespace: namespace,</span><br><span class="line">			Name:      <span class="string">&quot;bucket_size_bytes&quot;</span>,</span><br><span class="line">			Help:      <span class="string">&quot;bucket_size_bytes&quot;</span>,</span><br><span class="line">		&#125;, []<span class="keyword">string</span>&#123;<span class="string">&quot;bucket&quot;</span>, <span class="string">&quot;owner&quot;</span>&#125;),</span><br><span class="line">		BucketSizeUtilizedBytes: prometheus.NewGaugeVec(prometheus.GaugeOpts&#123;</span><br><span class="line">			Namespace: namespace,</span><br><span class="line">			Name:      <span class="string">&quot;bucket_size_utilized_bytes&quot;</span>,</span><br><span class="line">			Help:      <span class="string">&quot;bucket_size_utilized_bytes&quot;</span>,</span><br><span class="line">		&#125;, []<span class="keyword">string</span>&#123;<span class="string">&quot;bucket&quot;</span>, <span class="string">&quot;owner&quot;</span>&#125;),</span><br><span class="line">		BucketNumsObjects: prometheus.NewGaugeVec(prometheus.GaugeOpts&#123;</span><br><span class="line">			Namespace: namespace,</span><br><span class="line">			Name:      <span class="string">&quot;bucket_num_objects&quot;</span>,</span><br><span class="line">			Help:      <span class="string">&quot;bucket_num_objects&quot;</span>,</span><br><span class="line">		&#125;, []<span class="keyword">string</span>&#123;<span class="string">&quot;bucket&quot;</span>, <span class="string">&quot;owner&quot;</span>&#125;),</span><br><span class="line">		BucketQuotaEnable: prometheus.NewGaugeVec(prometheus.GaugeOpts&#123;</span><br><span class="line">			Namespace: namespace,</span><br><span class="line">			Name:      <span class="string">&quot;bucket_quota_enable&quot;</span>,</span><br><span class="line">			Help:      <span class="string">&quot;bucket_quota_enable&quot;</span>,</span><br><span class="line">		&#125;, []<span class="keyword">string</span>&#123;<span class="string">&quot;bucket&quot;</span>, <span class="string">&quot;owner&quot;</span>&#125;),</span><br><span class="line">		BucketQuotaMaxSize: prometheus.NewGaugeVec(prometheus.GaugeOpts&#123;</span><br><span class="line">			Namespace: namespace,</span><br><span class="line">			Name:      <span class="string">&quot;bucket_quota_max_size&quot;</span>,</span><br><span class="line">			Help:      <span class="string">&quot;bucket_quota_max_size&quot;</span>,</span><br><span class="line">		&#125;, []<span class="keyword">string</span>&#123;<span class="string">&quot;bucket&quot;</span>, <span class="string">&quot;owner&quot;</span>&#125;),</span><br><span class="line">		BucketQuotaMaxSizeBytes: prometheus.NewGaugeVec(prometheus.GaugeOpts&#123;</span><br><span class="line">			Namespace: namespace,</span><br><span class="line">			Name:      <span class="string">&quot;bucket_quota_max_size_bytes&quot;</span>,</span><br><span class="line">			Help:      <span class="string">&quot;bucket_quota_max_size_bytes&quot;</span>,</span><br><span class="line">		&#125;, []<span class="keyword">string</span>&#123;<span class="string">&quot;bucket&quot;</span>, <span class="string">&quot;owner&quot;</span>&#125;),</span><br><span class="line">		BucketQuotaMaxObjects: prometheus.NewGaugeVec(prometheus.GaugeOpts&#123;</span><br><span class="line">			Namespace: namespace,</span><br><span class="line">			Name:      <span class="string">&quot;bucket_quota_max_objects&quot;</span>,</span><br><span class="line">			Help:      <span class="string">&quot;bucket_quota_max_objects&quot;</span>,</span><br><span class="line">		&#125;, []<span class="keyword">string</span>&#123;<span class="string">&quot;bucket&quot;</span>, <span class="string">&quot;owner&quot;</span>&#125;),</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Collector)</span> <span class="title">collectorList</span><span class="params">()</span> []<span class="title">prometheus</span>.<span class="title">Collector</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> []prometheus.Collector&#123;</span><br><span class="line">		c.BucketSizeBytes,</span><br><span class="line">		c.BucketSizeUtilizedBytes,</span><br><span class="line">		c.BucketNumsObjects,</span><br><span class="line">		c.BucketQuotaEnable,</span><br><span class="line">		c.BucketQuotaMaxSize,</span><br><span class="line">		c.BucketQuotaMaxSizeBytes,</span><br><span class="line">		c.BucketQuotaMaxObjects,</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Collector)</span> <span class="title">Describe</span><span class="params">(ch <span class="keyword">chan</span>&lt;- *prometheus.Desc)</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> _, metric := <span class="keyword">range</span> c.collectorList() &#123;</span><br><span class="line">		metric.Describe(ch)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Collector)</span> <span class="title">Collect</span><span class="params">(ch <span class="keyword">chan</span>&lt;- prometheus.Metric)</span></span> &#123;</span><br><span class="line">	c.mu.Lock()</span><br><span class="line">	<span class="keyword">defer</span> c.mu.Unlock()</span><br><span class="line">	<span class="keyword">if</span> err := c.collect(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Println(err.Error())</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> _, metric := <span class="keyword">range</span> c.collectorList() &#123;</span><br><span class="line">		metric.Collect(ch)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Collector)</span> <span class="title">collect</span><span class="params">()</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	cmd := <span class="string">&quot;radosgw-admin bucket stats&quot;</span></span><br><span class="line">	cmdRet, err := exec_cmd(cmd, <span class="number">30</span>)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		fmt.Println(<span class="string">&quot;exec bucket stats error:&quot;</span>, err)</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	bucketsUsage := []BucketUsage&#123;&#125;</span><br><span class="line">	err = json.Unmarshal(cmdRet, &amp;bucketsUsage)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		fmt.Println(<span class="string">&quot;parse cmd returen error:&quot;</span>, err)</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	c.BucketSizeBytes.Reset()</span><br><span class="line">	c.BucketSizeUtilizedBytes.Reset()</span><br><span class="line">	c.BucketNumsObjects.Reset()</span><br><span class="line">	c.BucketQuotaEnable.Reset()</span><br><span class="line">	c.BucketQuotaMaxSize.Reset()</span><br><span class="line">	c.BucketQuotaMaxSizeBytes.Reset()</span><br><span class="line">	c.BucketQuotaMaxObjects.Reset()</span><br><span class="line">	<span class="keyword">for</span> _, bucketUsage := <span class="keyword">range</span> bucketsUsage &#123;</span><br><span class="line">		bucketName := bucketUsage.Bucket</span><br><span class="line">		bucketOwner := bucketUsage.Owner</span><br><span class="line">		bucketSizeBytes := bucketUsage.Usage.RGWMain.SizeActual</span><br><span class="line">		bucketSizeUtilizedBytes := bucketUsage.Usage.RGWMain.SizeUtilized</span><br><span class="line">		bucketObjects := bucketUsage.Usage.RGWMain.NumObjects</span><br><span class="line">		<span class="keyword">var</span> bucketQuotaEnable <span class="keyword">float64</span> = <span class="number">0</span></span><br><span class="line">		<span class="keyword">if</span> bucketUsage.BucketQuota.Enable &#123;</span><br><span class="line">			bucketQuotaEnable = <span class="number">1</span></span><br><span class="line">		&#125;</span><br><span class="line">		bucketQuotaMaxSize := bucketUsage.BucketQuota.MaxSize</span><br><span class="line">		bucketQuotaMaxSizeBytes := bucketUsage.BucketQuota.MaxSizeKB</span><br><span class="line">		bucketQuotaMaxObjects := bucketUsage.BucketQuota.MaxObjects</span><br><span class="line">		c.BucketSizeBytes.WithLabelValues(bucketName, bucketOwner).Set(bucketSizeBytes)</span><br><span class="line">		c.BucketSizeUtilizedBytes.WithLabelValues(bucketName, bucketOwner).Set(bucketSizeUtilizedBytes)</span><br><span class="line">		c.BucketNumsObjects.WithLabelValues(bucketName, bucketOwner).Set(bucketObjects)</span><br><span class="line">		c.BucketQuotaEnable.WithLabelValues(bucketName, bucketOwner).Set(bucketQuotaEnable)</span><br><span class="line">		c.BucketQuotaMaxSize.WithLabelValues(bucketName, bucketOwner).Set(bucketQuotaMaxSize)</span><br><span class="line">		c.BucketQuotaMaxSizeBytes.WithLabelValues(bucketName, bucketOwner).Set(bucketQuotaMaxSizeBytes)</span><br><span class="line">		c.BucketQuotaMaxObjects.WithLabelValues(bucketName, bucketOwner).Set(bucketQuotaMaxObjects)</span><br><span class="line"></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	flag.StringVar(&amp;rootDir, <span class="string">&quot;path&quot;</span>, <span class="string">&quot;/&quot;</span>, <span class="string">&quot;A cephfs path&quot;</span>)</span><br><span class="line">	flag.IntVar(&amp;depth, <span class="string">&quot;depth&quot;</span>, <span class="number">2</span>, <span class="string">&quot;default depth&quot;</span>)</span><br><span class="line">	flag.IntVar(&amp;port, <span class="string">&quot;port&quot;</span>, <span class="number">8080</span>, <span class="string">&quot;default exporter port&quot;</span>)</span><br><span class="line">	flag.Parse()</span><br><span class="line">	prometheus.MustRegister(NewCollector())</span><br><span class="line">	http.Handle(<span class="string">&quot;/metrics&quot;</span>, promhttp.Handler())</span><br><span class="line">	log.Fatal(http.ListenAndServe(<span class="string">&quot;:&quot;</span>+strconv.Itoa(port), <span class="literal">nil</span>))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>CEPH</category>
-        <category>S3</category>
-      </categories>
-      <tags>
-        <tag>监控</tag>
       </tags>
   </entry>
   <entry>
@@ -249,34 +279,77 @@
       </categories>
   </entry>
   <entry>
-    <title>Golang开发环境配置</title>
-    <url>/posts/b66fdee6/</url>
-    <content><![CDATA[<h2 id="开发环境搭建"><a href="#开发环境搭建" class="headerlink" title="开发环境搭建"></a>开发环境搭建</h2><hr>
-<h3 id="安装Golang"><a href="#安装Golang" class="headerlink" title="安装Golang"></a>安装Golang</h3><ol>
-<li>Golang<a href="https://golang.org/">官网</a>,进入下载页面，选择对应的版本进行下载安装</li>
-<li>mac可以通过Homebrew <code>brew install go</code>进行安装</li>
+    <title>for循环中i++和++i的区别和效率</title>
+    <url>/posts/2e389ba/</url>
+    <content><![CDATA[<h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>在看到一些书籍和视频中发现for循环里面有写++i,而不是i++</p>
+<span id="more"></span>
+
+<h1 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h1><p>for(A,B,C){<br>  D<br>}<br>执行顺序:</p>
+<ol>
+<li>进入循环执行A</li>
+<li>执行B</li>
+<li>执行D</li>
+<li>执行C</li>
+<li>再B，再D，再C直至退出循环</li>
 </ol>
-<blockquote>
-<p>安装完成后可以通过运行<code>go env</code>查看是否安装成功</p>
-</blockquote>
-<h3 id="关于GOROOT和GOPATH"><a href="#关于GOROOT和GOPATH" class="headerlink" title="关于GOROOT和GOPATH"></a>关于GOROOT和GOPATH</h3><h4 id="GOROOT"><a href="#GOROOT" class="headerlink" title="GOROOT"></a>GOROOT</h4><p>GOROOT就是你go的安装目录,使用Homebrew安装对应的目录就是<font color="DeepPink">/usr/local/Cellar/go/1.16.5/libexec</font>。</p>
-<h4 id="GOPATH"><a href="#GOPATH" class="headerlink" title="GOPATH"></a>GOPATH</h4><p>GOPATH是go的工作目录。谈GOPATH时需要引入一个环境变量<code>GO111MODULE</code>。<br>写本文时的go安装版本为1.16.5。GO111MODULE的参数为off、on和auto,其不同值的表现行为如下:</p>
-<ul>
-<li>auto (默认值)<ul>
-<li>当项目路径(go.mod)在GOPATH外时，其行为等同于GO111MODULE=on。这意味着可以将代码仓库存储于GOPATH之外</li>
-<li>当项目路径在GOPATH内，并且没有go.mod文件存在时，其行为等同于GO111MODULE=off</li>
-</ul>
-</li>
-<li>off<br>无模块支持，go会从GOPATH和vender文件夹寻找包</li>
-<li>on<br>模块支持,go会忽略GOPATH和vender文件夹，只根据<font color="DeepPink">go.mod</font>下载依赖。</li>
-</ul>
+<p>即可知上述循环等同于:<br>for(A,B,){<br>  D<br>  C<br>}</p>
+<h1 id="区别"><a href="#区别" class="headerlink" title="区别"></a>区别</h1><p>i++</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 相当于</span></span><br><span class="line">i += <span class="number">1</span></span><br><span class="line"><span class="keyword">return</span> i</span><br></pre></td></tr></table></figure>
+
+<p>++i</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 相当于</span></span><br><span class="line">j = i</span><br><span class="line">i += <span class="number">1</span></span><br><span class="line"><span class="keyword">return</span> j</span><br></pre></td></tr></table></figure>
+
+<p>从上述差别中可以看到是有效率上面的差别</p>
 ]]></content>
       <categories>
-        <category>GO</category>
+        <category>JS</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>K8S|Secret详解</title>
+    <url>/posts/5a8a6c8d/</url>
+    <content><![CDATA[<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>Secret解决了密码、token、秘钥等敏感数据的配置问题，而不需要把这些敏感数据暴露到镜像或者Pod Spec中。Secret可以以Volume或者环境变量的方式使用。</p>
+<h2 id="Secret类型"><a href="#Secret类型" class="headerlink" title="Secret类型"></a>Secret类型</h2><ul>
+<li>Service Account：用来访问Kubernetes API，由Kubernetes自动创建，并且会自动挂载到Pod的 /run/secrets/kubernetes.io/serviceaccount 目录中。</li>
+<li>Opaque：base64编码格式的Secret，用来存储密码、秘钥等。</li>
+<li>kubernetes.io/dockerconfigjson：用来存储私有docker registry的认证信息。<blockquote>
+<p>本文主要使用Opaque</p>
+</blockquote>
+</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 命令行直接创建</span></span><br><span class="line">kubectl create secret generic my-secret --from-literal=username=root --from-literal=password=root</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 使用文件创建</span></span><br><span class="line">echo -n &quot;root&quot; &gt; ./username</span><br><span class="line">echo -n &quot;root&quot; &gt; ./password</span><br><span class="line">kubectl create secret generic my-secret --from-file=./username --from-file=./password</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 先对字符串进行base64加密</span></span><br><span class="line">echo -n &#x27;root&#x27; | base64</span><br><span class="line">cm9vdA==</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 编辑资源文件</span></span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Secret</span><br><span class="line">metadata:</span><br><span class="line">  name: my-secret</span><br><span class="line">type: Opaque</span><br><span class="line">data:</span><br><span class="line">  username: base64</span><br><span class="line">  password: base64</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 解密</span></span><br><span class="line">kubectl get secrets my-secret -o jsonpath=&quot;&#123;.data.username&#125;&quot; | base64 -d</span><br><span class="line">root</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>K8S</category>
+        <category>Secret</category>
       </categories>
       <tags>
-        <tag>GO</tag>
+        <tag>K8S</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>引用类型和基本类型</title>
+    <url>/posts/d3b053f/</url>
+    <content><![CDATA[<h1 id="JS数据类型"><a href="#JS数据类型" class="headerlink" title="JS数据类型"></a>JS数据类型</h1><p>基本类型: Number Booleam String undefined null<br>引用类型: Object Function<br>基本类型的数据是放在栈内存中，而引用类型的数据是放在堆内存中</p>
+<span id="more"></span>
+
+<h1 id="JS传参差别-按值还是按址"><a href="#JS传参差别-按值还是按址" class="headerlink" title="JS传参差别 按值还是按址?"></a>JS传参差别 按值还是按址?</h1><h2 id="复制变量"><a href="#复制变量" class="headerlink" title="复制变量"></a>复制变量</h2><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 基本类型</span></span><br><span class="line"><span class="keyword">let</span> a = <span class="number">5</span></span><br><span class="line"><span class="keyword">let</span> b = a</span><br><span class="line">b = <span class="number">10</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;a&#125;</span> | <span class="subst">$&#123;b&#125;</span>`</span>) </span><br><span class="line"></span><br><span class="line"><span class="comment">// 引用类型</span></span><br><span class="line"><span class="keyword">let</span> obj1 = <span class="keyword">new</span> <span class="built_in">Object</span>()</span><br><span class="line">obj1.num = <span class="number">5</span></span><br><span class="line"><span class="keyword">let</span> obj2 = obj1</span><br><span class="line">obj2.mum =<span class="number">10</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;obj1.mun&#125;</span> | <span class="subst">$&#123;obj2.mum&#125;</span>`</span>)</span><br></pre></td></tr></table></figure>
+<p>基础类型由于是放在栈内存中，每个变量都有自己的值，所以其中一个值改变了，不影响另外一个。<br>引用类型其实就是在栈内存中存储了一个指针，这个指针指向的是存储地址，变量复制其实就是把这个地址复制给了另外一个变量，如果其中一个将这个对象修改了，那么另外一个也会改变。</p>
+<h2 id="函数传参"><a href="#函数传参" class="headerlink" title="函数传参"></a>函数传参</h2><blockquote>
+<p>到底是按值传参还是按址传参<br>示例1:</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">add</span>(<span class="params">num</span>)</span>&#123;</span><br><span class="line">  num += <span class="number">10</span></span><br><span class="line">  <span class="keyword">return</span> num</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">let</span> count = <span class="number">10</span></span><br><span class="line"><span class="keyword">let</span> result = add(count)</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;count&#125;</span> | <span class="subst">$&#123;result&#125;</span>`</span>)</span><br><span class="line"><span class="comment">// 20 | 30</span></span><br></pre></td></tr></table></figure>
+<p>按值传递,秒懂！</p>
+<p>示例2</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">setName</span>(<span class="params">obj</span>)</span>&#123;</span><br><span class="line">  obj.name = <span class="string">&#x27;bbb&#x27;</span></span><br><span class="line">  <span class="keyword">return</span> obj</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">let</span> person = <span class="keyword">new</span> <span class="built_in">Object</span>()</span><br><span class="line">person.name = <span class="string">&#x27;aaa&#x27;</span></span><br><span class="line"><span class="keyword">let</span> newPerson = setName(person)</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;person.name&#125;</span> | <span class="subst">$&#123;newPerson.name&#125;</span>`</span>)</span><br><span class="line"><span class="comment">// aaa | aaa</span></span><br></pre></td></tr></table></figure>
+<p>示例3</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">setName</span>(<span class="params">obj</span>)</span>&#123;</span><br><span class="line">  obj.name = <span class="string">&#x27;bbb&#x27;</span></span><br><span class="line">  <span class="keyword">let</span> obj = <span class="keyword">new</span> <span class="built_in">Object</span>()  <span class="comment">// 如果是按引用传递的,此处传参进来obj应该被重新引用新的内存单元</span></span><br><span class="line">  obj.name = <span class="string">&#x27;ccc&#x27;</span></span><br><span class="line">  <span class="keyword">return</span> obj</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">let</span> person = <span class="keyword">new</span> <span class="built_in">Object</span>()</span><br><span class="line">person.name = <span class="string">&#x27;aaa&#x27;</span></span><br><span class="line"><span class="keyword">let</span> newPerson = setName(person)</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;person.name&#125;</span> | <span class="subst">$&#123;newPerson.name&#125;</span>`</span>)</span><br><span class="line"><span class="comment">// aaa | ccc</span></span><br></pre></td></tr></table></figure>
+<p>// TODO  还是有点懵逼<br>// 还有new出来的实例</p>
+]]></content>
+      <categories>
+        <category>JS</category>
+      </categories>
   </entry>
   <entry>
     <title>微软Doc|Go入门</title>
@@ -394,98 +467,6 @@
       </tags>
   </entry>
   <entry>
-    <title>for循环中i++和++i的区别和效率</title>
-    <url>/posts/2e389ba/</url>
-    <content><![CDATA[<h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>在看到一些书籍和视频中发现for循环里面有写++i,而不是i++</p>
-<span id="more"></span>
-
-<h1 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h1><p>for(A,B,C){<br>  D<br>}<br>执行顺序:</p>
-<ol>
-<li>进入循环执行A</li>
-<li>执行B</li>
-<li>执行D</li>
-<li>执行C</li>
-<li>再B，再D，再C直至退出循环</li>
-</ol>
-<p>即可知上述循环等同于:<br>for(A,B,){<br>  D<br>  C<br>}</p>
-<h1 id="区别"><a href="#区别" class="headerlink" title="区别"></a>区别</h1><p>i++</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 相当于</span></span><br><span class="line">i += <span class="number">1</span></span><br><span class="line"><span class="keyword">return</span> i</span><br></pre></td></tr></table></figure>
-
-<p>++i</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 相当于</span></span><br><span class="line">j = i</span><br><span class="line">i += <span class="number">1</span></span><br><span class="line"><span class="keyword">return</span> j</span><br></pre></td></tr></table></figure>
-
-<p>从上述差别中可以看到是有效率上面的差别</p>
-]]></content>
-      <categories>
-        <category>JS</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>关联数组详解</title>
-    <url>/posts/485233ea/</url>
-    <content><![CDATA[<h1 id="关于数组"><a href="#关于数组" class="headerlink" title="关于数组"></a>关于数组</h1><p>　　请记住,数组是对象的特殊形式。使用方括号访问数组元素就像使用方括号访问对象的属性一样。JavaScript将指定的数字索引值转换成字符串—-索引值1变成”1”—-然后将其作为属性名来使用。<br>　　数组的特别之处在于，当使用小于2^32的非负整数作为属性名时数组会自动维护其length属性值。<br>　　注意，可以使用负数和非整数来索引数组。这种情况加，数值转换为字符串，字符串作为属性名来用。既然名字不是非负整数，它就只能当做常规的对象属性，而非数组的索引。</p>
-<p>–以上摘抄&lt;Javascript权威指南&gt;</p>
-<span id="more"></span>
-
-<h1 id="相关概念"><a href="#相关概念" class="headerlink" title="相关概念"></a>相关概念</h1><h2 id="稀松数组"><a href="#稀松数组" class="headerlink" title="稀松数组"></a>稀松数组</h2><p>稀松数组就是包含从0开始的不联系索引的数组。<br><code>简单来说就是数组元素的个数和数组长度不一致</code></p>
-<h2 id="密集数组"><a href="#密集数组" class="headerlink" title="密集数组"></a>密集数组</h2><h2 id="关联数组-数组下标为字符串"><a href="#关联数组-数组下标为字符串" class="headerlink" title="关联数组(数组下标为字符串)"></a>关联数组(数组下标为字符串)</h2><h2 id="关联数组-数组下标为数值-即通常情况下所说的数组"><a href="#关联数组-数组下标为数值-即通常情况下所说的数组" class="headerlink" title="关联数组(数组下标为数值,即通常情况下所说的数组)"></a>关联数组(数组下标为数值,即通常情况下所说的数组)</h2><h1 id="相关示例"><a href="#相关示例" class="headerlink" title="相关示例"></a>相关示例</h1><h2 id="如何创建数组"><a href="#如何创建数组" class="headerlink" title="如何创建数组"></a>如何创建数组</h2><h3 id="稀松数组-1"><a href="#稀松数组-1" class="headerlink" title="稀松数组"></a>稀松数组</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 第一种方式生成稀松数组</span></span><br><span class="line"><span class="keyword">let</span> a = <span class="keyword">new</span> <span class="built_in">Array</span>(<span class="number">3</span>) <span class="comment">// 数组没有元素，但是length为3</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 第二种方式生成稀松数组</span></span><br><span class="line"><span class="keyword">let</span> a =[]</span><br><span class="line">a[<span class="number">1000</span>] = <span class="number">1</span> <span class="comment">// 数组长度为1001,但是实际元素只有1个</span></span><br></pre></td></tr></table></figure>
-<p><strong>关于JavaScript权威指南p145的错误</strong></p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> a1 = [,,,];<span class="comment">//数组是[undefined,undefined,undefined]  == &gt; 这里是 错误的，应该是都是empty</span></span><br><span class="line"><span class="keyword">var</span> a2 = <span class="keyword">new</span> <span class="built_in">Array</span>(<span class="number">3</span>);</span><br><span class="line"><span class="number">0</span> <span class="keyword">in</span> a1  <span class="comment">//true:a1在索引0处有一个元素。  ==&gt; 这里应该是false</span></span><br><span class="line"><span class="number">0</span> <span class="keyword">in</span> a2  <span class="comment">//false</span></span><br></pre></td></tr></table></figure>
-<h3 id="密集数组-1"><a href="#密集数组-1" class="headerlink" title="密集数组"></a>密集数组</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> a = <span class="built_in">Array</span>.apply(<span class="literal">null</span>,<span class="built_in">Array</span>(<span class="number">3</span>))</span><br></pre></td></tr></table></figure>
-<h3 id="关联数组"><a href="#关联数组" class="headerlink" title="关联数组"></a>关联数组</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> a =[]</span><br><span class="line">a[<span class="string">&quot;aa&quot;</span>] = <span class="string">&quot;aaa&quot;</span></span><br><span class="line">a[<span class="string">&quot;bb&quot;</span>] = <span class="string">&quot;bbb&quot;</span></span><br><span class="line"><span class="comment">// a =&gt; [aa:&quot;aaa&quot;,bb:&quot;bbb&quot;]</span></span><br><span class="line"><span class="comment">// a.length = 0</span></span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>JS</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>引用类型和基本类型</title>
-    <url>/posts/d3b053f/</url>
-    <content><![CDATA[<h1 id="JS数据类型"><a href="#JS数据类型" class="headerlink" title="JS数据类型"></a>JS数据类型</h1><p>基本类型: Number Booleam String undefined null<br>引用类型: Object Function<br>基本类型的数据是放在栈内存中，而引用类型的数据是放在堆内存中</p>
-<span id="more"></span>
-
-<h1 id="JS传参差别-按值还是按址"><a href="#JS传参差别-按值还是按址" class="headerlink" title="JS传参差别 按值还是按址?"></a>JS传参差别 按值还是按址?</h1><h2 id="复制变量"><a href="#复制变量" class="headerlink" title="复制变量"></a>复制变量</h2><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 基本类型</span></span><br><span class="line"><span class="keyword">let</span> a = <span class="number">5</span></span><br><span class="line"><span class="keyword">let</span> b = a</span><br><span class="line">b = <span class="number">10</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;a&#125;</span> | <span class="subst">$&#123;b&#125;</span>`</span>) </span><br><span class="line"></span><br><span class="line"><span class="comment">// 引用类型</span></span><br><span class="line"><span class="keyword">let</span> obj1 = <span class="keyword">new</span> <span class="built_in">Object</span>()</span><br><span class="line">obj1.num = <span class="number">5</span></span><br><span class="line"><span class="keyword">let</span> obj2 = obj1</span><br><span class="line">obj2.mum =<span class="number">10</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;obj1.mun&#125;</span> | <span class="subst">$&#123;obj2.mum&#125;</span>`</span>)</span><br></pre></td></tr></table></figure>
-<p>基础类型由于是放在栈内存中，每个变量都有自己的值，所以其中一个值改变了，不影响另外一个。<br>引用类型其实就是在栈内存中存储了一个指针，这个指针指向的是存储地址，变量复制其实就是把这个地址复制给了另外一个变量，如果其中一个将这个对象修改了，那么另外一个也会改变。</p>
-<h2 id="函数传参"><a href="#函数传参" class="headerlink" title="函数传参"></a>函数传参</h2><blockquote>
-<p>到底是按值传参还是按址传参<br>示例1:</p>
-</blockquote>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">add</span>(<span class="params">num</span>)</span>&#123;</span><br><span class="line">  num += <span class="number">10</span></span><br><span class="line">  <span class="keyword">return</span> num</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">let</span> count = <span class="number">10</span></span><br><span class="line"><span class="keyword">let</span> result = add(count)</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;count&#125;</span> | <span class="subst">$&#123;result&#125;</span>`</span>)</span><br><span class="line"><span class="comment">// 20 | 30</span></span><br></pre></td></tr></table></figure>
-<p>按值传递,秒懂！</p>
-<p>示例2</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">setName</span>(<span class="params">obj</span>)</span>&#123;</span><br><span class="line">  obj.name = <span class="string">&#x27;bbb&#x27;</span></span><br><span class="line">  <span class="keyword">return</span> obj</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">let</span> person = <span class="keyword">new</span> <span class="built_in">Object</span>()</span><br><span class="line">person.name = <span class="string">&#x27;aaa&#x27;</span></span><br><span class="line"><span class="keyword">let</span> newPerson = setName(person)</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;person.name&#125;</span> | <span class="subst">$&#123;newPerson.name&#125;</span>`</span>)</span><br><span class="line"><span class="comment">// aaa | aaa</span></span><br></pre></td></tr></table></figure>
-<p>示例3</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">setName</span>(<span class="params">obj</span>)</span>&#123;</span><br><span class="line">  obj.name = <span class="string">&#x27;bbb&#x27;</span></span><br><span class="line">  <span class="keyword">let</span> obj = <span class="keyword">new</span> <span class="built_in">Object</span>()  <span class="comment">// 如果是按引用传递的,此处传参进来obj应该被重新引用新的内存单元</span></span><br><span class="line">  obj.name = <span class="string">&#x27;ccc&#x27;</span></span><br><span class="line">  <span class="keyword">return</span> obj</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">let</span> person = <span class="keyword">new</span> <span class="built_in">Object</span>()</span><br><span class="line">person.name = <span class="string">&#x27;aaa&#x27;</span></span><br><span class="line"><span class="keyword">let</span> newPerson = setName(person)</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;person.name&#125;</span> | <span class="subst">$&#123;newPerson.name&#125;</span>`</span>)</span><br><span class="line"><span class="comment">// aaa | ccc</span></span><br></pre></td></tr></table></figure>
-<p>// TODO  还是有点懵逼<br>// 还有new出来的实例</p>
-]]></content>
-      <categories>
-        <category>JS</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>K8S|Secret详解</title>
-    <url>/posts/5a8a6c8d/</url>
-    <content><![CDATA[<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>Secret解决了密码、token、秘钥等敏感数据的配置问题，而不需要把这些敏感数据暴露到镜像或者Pod Spec中。Secret可以以Volume或者环境变量的方式使用。</p>
-<h2 id="Secret类型"><a href="#Secret类型" class="headerlink" title="Secret类型"></a>Secret类型</h2><ul>
-<li>Service Account：用来访问Kubernetes API，由Kubernetes自动创建，并且会自动挂载到Pod的 /run/secrets/kubernetes.io/serviceaccount 目录中。</li>
-<li>Opaque：base64编码格式的Secret，用来存储密码、秘钥等。</li>
-<li>kubernetes.io/dockerconfigjson：用来存储私有docker registry的认证信息。<blockquote>
-<p>本文主要使用Opaque</p>
-</blockquote>
-</li>
-</ul>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 命令行直接创建</span></span><br><span class="line">kubectl create secret generic my-secret --from-literal=username=root --from-literal=password=root</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 使用文件创建</span></span><br><span class="line">echo -n &quot;root&quot; &gt; ./username</span><br><span class="line">echo -n &quot;root&quot; &gt; ./password</span><br><span class="line">kubectl create secret generic my-secret --from-file=./username --from-file=./password</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 先对字符串进行base64加密</span></span><br><span class="line">echo -n &#x27;root&#x27; | base64</span><br><span class="line">cm9vdA==</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 编辑资源文件</span></span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Secret</span><br><span class="line">metadata:</span><br><span class="line">  name: my-secret</span><br><span class="line">type: Opaque</span><br><span class="line">data:</span><br><span class="line">  username: base64</span><br><span class="line">  password: base64</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 解密</span></span><br><span class="line">kubectl get secrets my-secret -o jsonpath=&quot;&#123;.data.username&#125;&quot; | base64 -d</span><br><span class="line">root</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>K8S</category>
-        <category>Secret</category>
-      </categories>
-      <tags>
-        <tag>K8S</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>kubectl|patch命令使用</title>
     <url>/posts/e6afd30a/</url>
     <content><![CDATA[<h2 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h2><p><code>kubectl patch (-f FILENAME | TYPE NAME) -p PATCH</code></p>
@@ -523,6 +504,25 @@
       </categories>
   </entry>
   <entry>
+    <title>关联数组详解</title>
+    <url>/posts/485233ea/</url>
+    <content><![CDATA[<h1 id="关于数组"><a href="#关于数组" class="headerlink" title="关于数组"></a>关于数组</h1><p>　　请记住,数组是对象的特殊形式。使用方括号访问数组元素就像使用方括号访问对象的属性一样。JavaScript将指定的数字索引值转换成字符串—-索引值1变成”1”—-然后将其作为属性名来使用。<br>　　数组的特别之处在于，当使用小于2^32的非负整数作为属性名时数组会自动维护其length属性值。<br>　　注意，可以使用负数和非整数来索引数组。这种情况加，数值转换为字符串，字符串作为属性名来用。既然名字不是非负整数，它就只能当做常规的对象属性，而非数组的索引。</p>
+<p>–以上摘抄&lt;Javascript权威指南&gt;</p>
+<span id="more"></span>
+
+<h1 id="相关概念"><a href="#相关概念" class="headerlink" title="相关概念"></a>相关概念</h1><h2 id="稀松数组"><a href="#稀松数组" class="headerlink" title="稀松数组"></a>稀松数组</h2><p>稀松数组就是包含从0开始的不联系索引的数组。<br><code>简单来说就是数组元素的个数和数组长度不一致</code></p>
+<h2 id="密集数组"><a href="#密集数组" class="headerlink" title="密集数组"></a>密集数组</h2><h2 id="关联数组-数组下标为字符串"><a href="#关联数组-数组下标为字符串" class="headerlink" title="关联数组(数组下标为字符串)"></a>关联数组(数组下标为字符串)</h2><h2 id="关联数组-数组下标为数值-即通常情况下所说的数组"><a href="#关联数组-数组下标为数值-即通常情况下所说的数组" class="headerlink" title="关联数组(数组下标为数值,即通常情况下所说的数组)"></a>关联数组(数组下标为数值,即通常情况下所说的数组)</h2><h1 id="相关示例"><a href="#相关示例" class="headerlink" title="相关示例"></a>相关示例</h1><h2 id="如何创建数组"><a href="#如何创建数组" class="headerlink" title="如何创建数组"></a>如何创建数组</h2><h3 id="稀松数组-1"><a href="#稀松数组-1" class="headerlink" title="稀松数组"></a>稀松数组</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 第一种方式生成稀松数组</span></span><br><span class="line"><span class="keyword">let</span> a = <span class="keyword">new</span> <span class="built_in">Array</span>(<span class="number">3</span>) <span class="comment">// 数组没有元素，但是length为3</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 第二种方式生成稀松数组</span></span><br><span class="line"><span class="keyword">let</span> a =[]</span><br><span class="line">a[<span class="number">1000</span>] = <span class="number">1</span> <span class="comment">// 数组长度为1001,但是实际元素只有1个</span></span><br></pre></td></tr></table></figure>
+<p><strong>关于JavaScript权威指南p145的错误</strong></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> a1 = [,,,];<span class="comment">//数组是[undefined,undefined,undefined]  == &gt; 这里是 错误的，应该是都是empty</span></span><br><span class="line"><span class="keyword">var</span> a2 = <span class="keyword">new</span> <span class="built_in">Array</span>(<span class="number">3</span>);</span><br><span class="line"><span class="number">0</span> <span class="keyword">in</span> a1  <span class="comment">//true:a1在索引0处有一个元素。  ==&gt; 这里应该是false</span></span><br><span class="line"><span class="number">0</span> <span class="keyword">in</span> a2  <span class="comment">//false</span></span><br></pre></td></tr></table></figure>
+<h3 id="密集数组-1"><a href="#密集数组-1" class="headerlink" title="密集数组"></a>密集数组</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> a = <span class="built_in">Array</span>.apply(<span class="literal">null</span>,<span class="built_in">Array</span>(<span class="number">3</span>))</span><br></pre></td></tr></table></figure>
+<h3 id="关联数组"><a href="#关联数组" class="headerlink" title="关联数组"></a>关联数组</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> a =[]</span><br><span class="line">a[<span class="string">&quot;aa&quot;</span>] = <span class="string">&quot;aaa&quot;</span></span><br><span class="line">a[<span class="string">&quot;bb&quot;</span>] = <span class="string">&quot;bbb&quot;</span></span><br><span class="line"><span class="comment">// a =&gt; [aa:&quot;aaa&quot;,bb:&quot;bbb&quot;]</span></span><br><span class="line"><span class="comment">// a.length = 0</span></span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>JS</category>
+      </categories>
+  </entry>
+  <entry>
     <title>Linux命令|cut</title>
     <url>/posts/5b806bba/</url>
     <content><![CDATA[<h1 id="cut"><a href="#cut" class="headerlink" title="cut"></a>cut</h1><h1 id="参数"><a href="#参数" class="headerlink" title="参数"></a>参数</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">-b ：以字节为单位进行分割。这些字节位置将忽略多字节字符边界，除非也指定了 -n 标志。</span><br><span class="line">-c ：以字符为单位进行分割。</span><br><span class="line">-d ：自定义分隔符，默认为制表符。</span><br><span class="line">-f ：与-d一起使用，指定显示哪个区域。</span><br><span class="line">-n ：取消分割多字节字符。仅和 -b 标志一起使用。如果字符的最后一个字节落在由 -b 标志的 List 参数指示的范围之内，该字符将被写出；否则，该字符将被排除</span><br></pre></td></tr></table></figure>
@@ -550,28 +550,6 @@
       </tags>
   </entry>
   <entry>
-    <title>SHELL参数的含义</title>
-    <url>/posts/1b4c4aa3/</url>
-    <content><![CDATA[<ul>
-<li>$0<br>当前脚本的文件名</li>
-<li>$n<br>传递给脚本或函数的参数。n 是一个数字，表示第几个参数。例如，第一个参数是$1，第二个参数是$2。</li>
-<li>$#<br>传递给脚本或函数的参数个数。</li>
-<li>$*<br>传递给脚本或函数的所有参数。</li>
-<li>$@<br>传递给脚本或函数的所有参数。</li>
-<li>$* 和 $@ 的区别<ul>
-<li>$* 和 $@ 都表示传递给函数或脚本的所有参数，不被双引号(“ “)包含时，都以”$1” “2” “n” 的形式输出所有参数</li>
-<li>当它们被双引号(“ “)包含时，”$*” 会将所有的参数作为一个整体，以”$1 $2 … n”的形式输出所有参数；”n”的形式输出所有参数；”n”的形式输出所有参数；”@” 会将各个参数分开，以”$1” “2”…”n” 的形式输出所有参数。</li>
-</ul>
-</li>
-<li>$?<br>上个命令的退出状态，或函数的返回值。</li>
-<li>$$<br>当前Shell进程ID。对于 Shell 脚本，就是这些脚本所在的进程ID</li>
-</ul>
-]]></content>
-      <categories>
-        <category>SHELL</category>
-      </categories>
-  </entry>
-  <entry>
     <title>Docker搭建registry</title>
     <url>/posts/2adf5bb7/</url>
     <content><![CDATA[<p>　　工作中当我们执行docker pull时，它实际上是从registry.hub.docker.com上面去查找，这是官方提供的公共仓库。实际项目中，我们不可能将企业私有镜像push到公共仓库。所以为了更好的管理镜像,docke允许我们搭建本地私有仓库-registry。<br>　　registry使用比较简单，但是管理功能较差。企业级别的私服推荐还是使用harbor提供服务。</p>
@@ -595,6 +573,49 @@
 <li>浏览器访问 <a href="http://localhost:5000/v2/_catalog">http://localhost:5000/v2/_catalog</a><br><img src="https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202108241635105.png" alt="registry-2"></li>
 </ol>
 ]]></content>
+  </entry>
+  <entry>
+    <title>awk-sdk-python验证S3服务</title>
+    <url>/posts/5a7446d2/</url>
+    <content><![CDATA[<blockquote>
+<p>How to use awk-sdk-python to validate access to s3 server</p>
+</blockquote>
+<ol>
+<li><p>Prerequisites<br>Install the AWS SDK for Python from <a href="https://aws.amazon.com/cn/sdk-for-python/">here</a></p>
+</li>
+<li><p>Example<br>Please replace endpoint_url,aws_access_key_id, aws_secret_access_key, Bucket and Object with your local setup in this example.py file.</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"><span class="comment"># _*_ coding:utf-8 _*_</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> boto3.session <span class="keyword">import</span> Session</span><br><span class="line"></span><br><span class="line">access_key = <span class="string">&quot;minioadmin&quot;</span></span><br><span class="line">secret_key = <span class="string">&quot;minioadmin&quot;</span></span><br><span class="line">endpoint_url = <span class="string">&quot;http://localhost:9000&quot;</span></span><br><span class="line">bucket_name = <span class="string">&quot;my-bucket&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Connect to s3</span></span><br><span class="line">session = Session(aws_access_key_id=access_key, aws_secret_access_key=secret_key)</span><br><span class="line">s3 = session.resource(<span class="string">&quot;s3&quot;</span>, endpoint_url=endpoint_url)</span><br><span class="line"></span><br><span class="line"><span class="comment"># List all the existing buckets</span></span><br><span class="line"><span class="keyword">for</span> bucket <span class="keyword">in</span> s3.buckets.<span class="built_in">all</span>():</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;bucket name:%s&quot;</span> % bucket.name)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Create a new bucket</span></span><br><span class="line">s3.create_bucket(Bucket=bucket_name)</span><br><span class="line">bucket = s3.Bucket(bucket_name)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Upload a file from local file system &#x27;/home/root/file.txt&#x27; to bucket</span></span><br><span class="line">bucket.upload_file(<span class="string">&quot;/home/root/file.txt&quot;</span>, <span class="string">&quot;file.txt&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># List all objects</span></span><br><span class="line"><span class="keyword">for</span> obj <span class="keyword">in</span> bucket.objects.<span class="built_in">all</span>():</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;obj name:%s&quot;</span> % obj.key)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Download the object &#x27;file.txt&#x27; from the bucket and save it to local file system</span></span><br><span class="line">bucket.download_file(<span class="string">&quot;file.txt&quot;</span>, <span class="string">&quot;/tmp/file.txt&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Delete all the objects</span></span><br><span class="line">bucket.objects.<span class="built_in">filter</span>().delete()</span><br><span class="line"></span><br><span class="line"><span class="comment"># Delete bucket</span></span><br><span class="line">bucket.delete()</span><br></pre></td></tr></table></figure></li>
+</ol>
+<p><code>TODO: resource和client的差别</code></p>
+]]></content>
+      <categories>
+        <category>S3</category>
+      </categories>
+      <tags>
+        <tag>TODO</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>SHELL参数的含义</title>
+    <url>/posts/1b4c4aa3/</url>
+    <content><![CDATA[<ul>
+<li>$0<br>当前脚本的文件名</li>
+<li>$n<br>传递给脚本或函数的参数。n 是一个数字，表示第几个参数。例如，第一个参数是$1，第二个参数是$2。</li>
+<li>$#<br>传递给脚本或函数的参数个数。</li>
+<li>$*<br>传递给脚本或函数的所有参数。</li>
+<li>$@<br>传递给脚本或函数的所有参数。</li>
+<li>$* 和 $@ 的区别<ul>
+<li>$* 和 $@ 都表示传递给函数或脚本的所有参数，不被双引号(“ “)包含时，都以”$1” “2” “n” 的形式输出所有参数</li>
+<li>当它们被双引号(“ “)包含时，”$*” 会将所有的参数作为一个整体，以”$1 $2 … n”的形式输出所有参数；”n”的形式输出所有参数；”n”的形式输出所有参数；”@” 会将各个参数分开，以”$1” “2”…”n” 的形式输出所有参数。</li>
+</ul>
+</li>
+<li>$?<br>上个命令的退出状态，或函数的返回值。</li>
+<li>$$<br>当前Shell进程ID。对于 Shell 脚本，就是这些脚本所在的进程ID</li>
+</ul>
+]]></content>
+      <categories>
+        <category>SHELL</category>
+      </categories>
   </entry>
   <entry>
     <title>Docker部署gitlab</title>
@@ -628,27 +649,6 @@
       </categories>
   </entry>
   <entry>
-    <title>awk-sdk-python验证S3服务</title>
-    <url>/posts/5a7446d2/</url>
-    <content><![CDATA[<blockquote>
-<p>How to use awk-sdk-python to validate access to s3 server</p>
-</blockquote>
-<ol>
-<li><p>Prerequisites<br>Install the AWS SDK for Python from <a href="https://aws.amazon.com/cn/sdk-for-python/">here</a></p>
-</li>
-<li><p>Example<br>Please replace endpoint_url,aws_access_key_id, aws_secret_access_key, Bucket and Object with your local setup in this example.py file.</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"><span class="comment"># _*_ coding:utf-8 _*_</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> boto3.session <span class="keyword">import</span> Session</span><br><span class="line"></span><br><span class="line">access_key = <span class="string">&quot;minioadmin&quot;</span></span><br><span class="line">secret_key = <span class="string">&quot;minioadmin&quot;</span></span><br><span class="line">endpoint_url = <span class="string">&quot;http://localhost:9000&quot;</span></span><br><span class="line">bucket_name = <span class="string">&quot;my-bucket&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Connect to s3</span></span><br><span class="line">session = Session(aws_access_key_id=access_key, aws_secret_access_key=secret_key)</span><br><span class="line">s3 = session.resource(<span class="string">&quot;s3&quot;</span>, endpoint_url=endpoint_url)</span><br><span class="line"></span><br><span class="line"><span class="comment"># List all the existing buckets</span></span><br><span class="line"><span class="keyword">for</span> bucket <span class="keyword">in</span> s3.buckets.<span class="built_in">all</span>():</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;bucket name:%s&quot;</span> % bucket.name)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Create a new bucket</span></span><br><span class="line">s3.create_bucket(Bucket=bucket_name)</span><br><span class="line">bucket = s3.Bucket(bucket_name)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Upload a file from local file system &#x27;/home/root/file.txt&#x27; to bucket</span></span><br><span class="line">bucket.upload_file(<span class="string">&quot;/home/root/file.txt&quot;</span>, <span class="string">&quot;file.txt&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># List all objects</span></span><br><span class="line"><span class="keyword">for</span> obj <span class="keyword">in</span> bucket.objects.<span class="built_in">all</span>():</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;obj name:%s&quot;</span> % obj.key)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Download the object &#x27;file.txt&#x27; from the bucket and save it to local file system</span></span><br><span class="line">bucket.download_file(<span class="string">&quot;file.txt&quot;</span>, <span class="string">&quot;/tmp/file.txt&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Delete all the objects</span></span><br><span class="line">bucket.objects.<span class="built_in">filter</span>().delete()</span><br><span class="line"></span><br><span class="line"><span class="comment"># Delete bucket</span></span><br><span class="line">bucket.delete()</span><br></pre></td></tr></table></figure></li>
-</ol>
-<p><code>TODO: resource和client的差别</code></p>
-]]></content>
-      <categories>
-        <category>S3</category>
-      </categories>
-      <tags>
-        <tag>TODO</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Work Environment setup</title>
     <url>/posts/27b637df/</url>
     <content><![CDATA[<h3 id="Mac-App"><a href="#Mac-App" class="headerlink" title="Mac App"></a>Mac App</h3><ul>
@@ -666,6 +666,17 @@
 ]]></content>
       <categories>
         <category>博客</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>通过nodejs查看http的STAUS_CODE</title>
+    <url>/posts/9a2f555f/</url>
+    <content><![CDATA[<p>HTTP核心模块是Node.js网络的关键模块,该模块提供了一些属性、方法以及类。<br><code>http.STATUS_CODES此属性列出了所有的HTTP状态代码以及其描述</code></p>
+<span id="more"></span>
+
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">❯ node</span><br><span class="line">Welcome to Node.js v14.17.3.</span><br><span class="line">Type &quot;.help&quot; for more information.</span><br><span class="line"><span class="meta">&gt;</span><span class="bash"> require(<span class="string">&#x27;http&#x27;</span>).STATUS_CODES</span></span><br><span class="line">&#123;</span><br><span class="line">  &#x27;100&#x27;: &#x27;Continue&#x27;,</span><br><span class="line">  &#x27;101&#x27;: &#x27;Switching Protocols&#x27;,</span><br><span class="line">  &#x27;102&#x27;: &#x27;Processing&#x27;,</span><br><span class="line">  &#x27;103&#x27;: &#x27;Early Hints&#x27;,</span><br><span class="line">  &#x27;200&#x27;: &#x27;OK&#x27;,</span><br><span class="line">  &#x27;201&#x27;: &#x27;Created&#x27;,</span><br><span class="line">  &#x27;202&#x27;: &#x27;Accepted&#x27;,</span><br><span class="line">  &#x27;203&#x27;: &#x27;Non-Authoritative Information&#x27;,</span><br><span class="line">  &#x27;204&#x27;: &#x27;No Content&#x27;,</span><br><span class="line">  &#x27;205&#x27;: &#x27;Reset Content&#x27;,</span><br><span class="line">  &#x27;206&#x27;: &#x27;Partial Content&#x27;,</span><br><span class="line">  &#x27;207&#x27;: &#x27;Multi-Status&#x27;,</span><br><span class="line">  &#x27;208&#x27;: &#x27;Already Reported&#x27;,</span><br><span class="line">  &#x27;226&#x27;: &#x27;IM Used&#x27;,</span><br><span class="line">  &#x27;300&#x27;: &#x27;Multiple Choices&#x27;,</span><br><span class="line">  &#x27;301&#x27;: &#x27;Moved Permanently&#x27;,</span><br><span class="line">  &#x27;302&#x27;: &#x27;Found&#x27;,</span><br><span class="line">  &#x27;303&#x27;: &#x27;See Other&#x27;,</span><br><span class="line">  &#x27;304&#x27;: &#x27;Not Modified&#x27;,</span><br><span class="line">  &#x27;305&#x27;: &#x27;Use Proxy&#x27;,</span><br><span class="line">  &#x27;307&#x27;: &#x27;Temporary Redirect&#x27;,</span><br><span class="line">  &#x27;308&#x27;: &#x27;Permanent Redirect&#x27;,</span><br><span class="line">  &#x27;400&#x27;: &#x27;Bad Request&#x27;,</span><br><span class="line">  &#x27;401&#x27;: &#x27;Unauthorized&#x27;,</span><br><span class="line">  &#x27;402&#x27;: &#x27;Payment Required&#x27;,</span><br><span class="line">  &#x27;403&#x27;: &#x27;Forbidden&#x27;,</span><br><span class="line">  &#x27;404&#x27;: &#x27;Not Found&#x27;,</span><br><span class="line">  &#x27;405&#x27;: &#x27;Method Not Allowed&#x27;,</span><br><span class="line">  &#x27;406&#x27;: &#x27;Not Acceptable&#x27;,</span><br><span class="line">  &#x27;407&#x27;: &#x27;Proxy Authentication Required&#x27;,</span><br><span class="line">  &#x27;408&#x27;: &#x27;Request Timeout&#x27;,</span><br><span class="line">  &#x27;409&#x27;: &#x27;Conflict&#x27;,</span><br><span class="line">  &#x27;410&#x27;: &#x27;Gone&#x27;,</span><br><span class="line">  &#x27;411&#x27;: &#x27;Length Required&#x27;,</span><br><span class="line">  &#x27;412&#x27;: &#x27;Precondition Failed&#x27;,</span><br><span class="line">  &#x27;413&#x27;: &#x27;Payload Too Large&#x27;,</span><br><span class="line">  &#x27;414&#x27;: &#x27;URI Too Long&#x27;,</span><br><span class="line">  &#x27;415&#x27;: &#x27;Unsupported Media Type&#x27;,</span><br><span class="line">  &#x27;416&#x27;: &#x27;Range Not Satisfiable&#x27;,</span><br><span class="line">  &#x27;417&#x27;: &#x27;Expectation Failed&#x27;,</span><br><span class="line">  &#x27;418&#x27;: &quot;I&#x27;m a Teapot&quot;,</span><br><span class="line">  &#x27;421&#x27;: &#x27;Misdirected Request&#x27;,</span><br><span class="line">  &#x27;422&#x27;: &#x27;Unprocessable Entity&#x27;,</span><br><span class="line">  &#x27;423&#x27;: &#x27;Locked&#x27;,</span><br><span class="line">  &#x27;424&#x27;: &#x27;Failed Dependency&#x27;,</span><br><span class="line">  &#x27;425&#x27;: &#x27;Too Early&#x27;,</span><br><span class="line">  &#x27;426&#x27;: &#x27;Upgrade Required&#x27;,</span><br><span class="line">  &#x27;428&#x27;: &#x27;Precondition Required&#x27;,</span><br><span class="line">  &#x27;429&#x27;: &#x27;Too Many Requests&#x27;,</span><br><span class="line">  &#x27;431&#x27;: &#x27;Request Header Fields Too Large&#x27;,</span><br><span class="line">  &#x27;451&#x27;: &#x27;Unavailable For Legal Reasons&#x27;,</span><br><span class="line">  &#x27;500&#x27;: &#x27;Internal Server Error&#x27;,</span><br><span class="line">  &#x27;501&#x27;: &#x27;Not Implemented&#x27;,</span><br><span class="line">  &#x27;502&#x27;: &#x27;Bad Gateway&#x27;,</span><br><span class="line">  &#x27;503&#x27;: &#x27;Service Unavailable&#x27;,</span><br><span class="line">  &#x27;504&#x27;: &#x27;Gateway Timeout&#x27;,</span><br><span class="line">  &#x27;505&#x27;: &#x27;HTTP Version Not Supported&#x27;,</span><br><span class="line">  &#x27;506&#x27;: &#x27;Variant Also Negotiates&#x27;,</span><br><span class="line">  &#x27;507&#x27;: &#x27;Insufficient Storage&#x27;,</span><br><span class="line">  &#x27;508&#x27;: &#x27;Loop Detected&#x27;,</span><br><span class="line">  &#x27;509&#x27;: &#x27;Bandwidth Limit Exceeded&#x27;,</span><br><span class="line">  &#x27;510&#x27;: &#x27;Not Extended&#x27;,</span><br><span class="line">  &#x27;511&#x27;: &#x27;Network Authentication Required&#x27;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>NODEJS</category>
       </categories>
   </entry>
   <entry>
@@ -724,16 +735,5 @@
       <tags>
         <tag>NODEJS</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>通过nodejs查看http的STAUS_CODE</title>
-    <url>/posts/9a2f555f/</url>
-    <content><![CDATA[<p>HTTP核心模块是Node.js网络的关键模块,该模块提供了一些属性、方法以及类。<br><code>http.STATUS_CODES此属性列出了所有的HTTP状态代码以及其描述</code></p>
-<span id="more"></span>
-
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">❯ node</span><br><span class="line">Welcome to Node.js v14.17.3.</span><br><span class="line">Type &quot;.help&quot; for more information.</span><br><span class="line"><span class="meta">&gt;</span><span class="bash"> require(<span class="string">&#x27;http&#x27;</span>).STATUS_CODES</span></span><br><span class="line">&#123;</span><br><span class="line">  &#x27;100&#x27;: &#x27;Continue&#x27;,</span><br><span class="line">  &#x27;101&#x27;: &#x27;Switching Protocols&#x27;,</span><br><span class="line">  &#x27;102&#x27;: &#x27;Processing&#x27;,</span><br><span class="line">  &#x27;103&#x27;: &#x27;Early Hints&#x27;,</span><br><span class="line">  &#x27;200&#x27;: &#x27;OK&#x27;,</span><br><span class="line">  &#x27;201&#x27;: &#x27;Created&#x27;,</span><br><span class="line">  &#x27;202&#x27;: &#x27;Accepted&#x27;,</span><br><span class="line">  &#x27;203&#x27;: &#x27;Non-Authoritative Information&#x27;,</span><br><span class="line">  &#x27;204&#x27;: &#x27;No Content&#x27;,</span><br><span class="line">  &#x27;205&#x27;: &#x27;Reset Content&#x27;,</span><br><span class="line">  &#x27;206&#x27;: &#x27;Partial Content&#x27;,</span><br><span class="line">  &#x27;207&#x27;: &#x27;Multi-Status&#x27;,</span><br><span class="line">  &#x27;208&#x27;: &#x27;Already Reported&#x27;,</span><br><span class="line">  &#x27;226&#x27;: &#x27;IM Used&#x27;,</span><br><span class="line">  &#x27;300&#x27;: &#x27;Multiple Choices&#x27;,</span><br><span class="line">  &#x27;301&#x27;: &#x27;Moved Permanently&#x27;,</span><br><span class="line">  &#x27;302&#x27;: &#x27;Found&#x27;,</span><br><span class="line">  &#x27;303&#x27;: &#x27;See Other&#x27;,</span><br><span class="line">  &#x27;304&#x27;: &#x27;Not Modified&#x27;,</span><br><span class="line">  &#x27;305&#x27;: &#x27;Use Proxy&#x27;,</span><br><span class="line">  &#x27;307&#x27;: &#x27;Temporary Redirect&#x27;,</span><br><span class="line">  &#x27;308&#x27;: &#x27;Permanent Redirect&#x27;,</span><br><span class="line">  &#x27;400&#x27;: &#x27;Bad Request&#x27;,</span><br><span class="line">  &#x27;401&#x27;: &#x27;Unauthorized&#x27;,</span><br><span class="line">  &#x27;402&#x27;: &#x27;Payment Required&#x27;,</span><br><span class="line">  &#x27;403&#x27;: &#x27;Forbidden&#x27;,</span><br><span class="line">  &#x27;404&#x27;: &#x27;Not Found&#x27;,</span><br><span class="line">  &#x27;405&#x27;: &#x27;Method Not Allowed&#x27;,</span><br><span class="line">  &#x27;406&#x27;: &#x27;Not Acceptable&#x27;,</span><br><span class="line">  &#x27;407&#x27;: &#x27;Proxy Authentication Required&#x27;,</span><br><span class="line">  &#x27;408&#x27;: &#x27;Request Timeout&#x27;,</span><br><span class="line">  &#x27;409&#x27;: &#x27;Conflict&#x27;,</span><br><span class="line">  &#x27;410&#x27;: &#x27;Gone&#x27;,</span><br><span class="line">  &#x27;411&#x27;: &#x27;Length Required&#x27;,</span><br><span class="line">  &#x27;412&#x27;: &#x27;Precondition Failed&#x27;,</span><br><span class="line">  &#x27;413&#x27;: &#x27;Payload Too Large&#x27;,</span><br><span class="line">  &#x27;414&#x27;: &#x27;URI Too Long&#x27;,</span><br><span class="line">  &#x27;415&#x27;: &#x27;Unsupported Media Type&#x27;,</span><br><span class="line">  &#x27;416&#x27;: &#x27;Range Not Satisfiable&#x27;,</span><br><span class="line">  &#x27;417&#x27;: &#x27;Expectation Failed&#x27;,</span><br><span class="line">  &#x27;418&#x27;: &quot;I&#x27;m a Teapot&quot;,</span><br><span class="line">  &#x27;421&#x27;: &#x27;Misdirected Request&#x27;,</span><br><span class="line">  &#x27;422&#x27;: &#x27;Unprocessable Entity&#x27;,</span><br><span class="line">  &#x27;423&#x27;: &#x27;Locked&#x27;,</span><br><span class="line">  &#x27;424&#x27;: &#x27;Failed Dependency&#x27;,</span><br><span class="line">  &#x27;425&#x27;: &#x27;Too Early&#x27;,</span><br><span class="line">  &#x27;426&#x27;: &#x27;Upgrade Required&#x27;,</span><br><span class="line">  &#x27;428&#x27;: &#x27;Precondition Required&#x27;,</span><br><span class="line">  &#x27;429&#x27;: &#x27;Too Many Requests&#x27;,</span><br><span class="line">  &#x27;431&#x27;: &#x27;Request Header Fields Too Large&#x27;,</span><br><span class="line">  &#x27;451&#x27;: &#x27;Unavailable For Legal Reasons&#x27;,</span><br><span class="line">  &#x27;500&#x27;: &#x27;Internal Server Error&#x27;,</span><br><span class="line">  &#x27;501&#x27;: &#x27;Not Implemented&#x27;,</span><br><span class="line">  &#x27;502&#x27;: &#x27;Bad Gateway&#x27;,</span><br><span class="line">  &#x27;503&#x27;: &#x27;Service Unavailable&#x27;,</span><br><span class="line">  &#x27;504&#x27;: &#x27;Gateway Timeout&#x27;,</span><br><span class="line">  &#x27;505&#x27;: &#x27;HTTP Version Not Supported&#x27;,</span><br><span class="line">  &#x27;506&#x27;: &#x27;Variant Also Negotiates&#x27;,</span><br><span class="line">  &#x27;507&#x27;: &#x27;Insufficient Storage&#x27;,</span><br><span class="line">  &#x27;508&#x27;: &#x27;Loop Detected&#x27;,</span><br><span class="line">  &#x27;509&#x27;: &#x27;Bandwidth Limit Exceeded&#x27;,</span><br><span class="line">  &#x27;510&#x27;: &#x27;Not Extended&#x27;,</span><br><span class="line">  &#x27;511&#x27;: &#x27;Network Authentication Required&#x27;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>NODEJS</category>
-      </categories>
   </entry>
 </search>
