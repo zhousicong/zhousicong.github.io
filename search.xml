@@ -49,6 +49,22 @@
       </tags>
   </entry>
   <entry>
+    <title>argo-combined-demo</title>
+    <url>/posts/612a1ead/</url>
+    <content><![CDATA[<blockquote>
+<p>Automation of Every - How To combine Argo Events, Workflow &amp; CD</p>
+</blockquote>
+<span id="more"></span>
+<p><img src="https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202108251511952.png" alt="process"></p>
+]]></content>
+      <categories>
+        <category>Argo</category>
+      </categories>
+      <tags>
+        <tag>Argo</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Argo Events实战|安装部署</title>
     <url>/posts/ae06cf7a/</url>
     <content><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>Argo Events是Kubernetes的事件驱动的工作流自动化框架.</p>
@@ -125,6 +141,14 @@
       </tags>
   </entry>
   <entry>
+    <title>CEPH客户端版本升级</title>
+    <url>/posts/bab85c8a/</url>
+    <content><![CDATA[<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">wget -q -O- &#x27;https://download.ceph.com/keys/release.asc&#x27; | sudo apt-key add -</span><br><span class="line">echo deb https://download.ceph.com/debian-nautilus/ $(lsb_release -sc) main | sudo tee /etc/apt/sources.list.d/ceph.list</span><br><span class="line">apt update</span><br><span class="line">apt install ceph-common</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>CEPH</category>
+      </categories>
+  </entry>
+  <entry>
     <title>Argo Workflow实践|安装部署</title>
     <url>/posts/1e633edc/</url>
     <content><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>　　Argo Workflow是一个云原生的工作流引擎，专注于编排并行任务。特点如下:</p>
@@ -165,30 +189,6 @@
       </tags>
   </entry>
   <entry>
-    <title>argo-combined-demo</title>
-    <url>/posts/612a1ead/</url>
-    <content><![CDATA[<blockquote>
-<p>Automation of Every - How To combine Argo Events, Workflow &amp; CD</p>
-</blockquote>
-<span id="more"></span>
-<p><img src="https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202108251511952.png" alt="process"></p>
-]]></content>
-      <categories>
-        <category>Argo</category>
-      </categories>
-      <tags>
-        <tag>Argo</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>CEPH客户端版本升级</title>
-    <url>/posts/bab85c8a/</url>
-    <content><![CDATA[<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">wget -q -O- &#x27;https://download.ceph.com/keys/release.asc&#x27; | sudo apt-key add -</span><br><span class="line">echo deb https://download.ceph.com/debian-nautilus/ $(lsb_release -sc) main | sudo tee /etc/apt/sources.list.d/ceph.list</span><br><span class="line">apt update</span><br><span class="line">apt install ceph-common</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>CEPH</category>
-      </categories>
-  </entry>
-  <entry>
     <title>s3-exporter实现</title>
     <url>/posts/f7f721f2/</url>
     <content><![CDATA[<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"> <span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;context&quot;</span></span><br><span class="line">	<span class="string">&quot;encoding/json&quot;</span></span><br><span class="line">	<span class="string">&quot;flag&quot;</span></span><br><span class="line">	<span class="string">&quot;fmt&quot;</span></span><br><span class="line">	<span class="string">&quot;log&quot;</span></span><br><span class="line">	<span class="string">&quot;net/http&quot;</span></span><br><span class="line">	<span class="string">&quot;os/exec&quot;</span></span><br><span class="line">	<span class="string">&quot;strconv&quot;</span></span><br><span class="line">	<span class="string">&quot;sync&quot;</span></span><br><span class="line">	<span class="string">&quot;time&quot;</span></span><br><span class="line"></span><br><span class="line">	<span class="string">&quot;github.com/prometheus/client_golang/prometheus&quot;</span></span><br><span class="line">	<span class="string">&quot;github.com/prometheus/client_golang/prometheus/promhttp&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> (</span><br><span class="line">	rootDir <span class="keyword">string</span></span><br><span class="line">	depth   <span class="keyword">int</span></span><br><span class="line">	port    <span class="keyword">int</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> BucketUsage <span class="keyword">struct</span> &#123;</span><br><span class="line">	Bucket <span class="keyword">string</span> <span class="string">`json:&quot;bucket&quot;`</span></span><br><span class="line">	Owner  <span class="keyword">string</span> <span class="string">`json:&quot;owner&quot;`</span></span><br><span class="line">	Usage  <span class="keyword">struct</span> &#123;</span><br><span class="line">		RGWMain <span class="keyword">struct</span> &#123;</span><br><span class="line">			Size         <span class="keyword">float64</span> <span class="string">`json:&quot;size&quot;`</span></span><br><span class="line">			SizeActual   <span class="keyword">float64</span> <span class="string">`json:&quot;size_actual&quot;`</span></span><br><span class="line">			SizeUtilized <span class="keyword">float64</span> <span class="string">`json:&quot;size_utilized&quot;`</span></span><br><span class="line">			NumObjects   <span class="keyword">float64</span> <span class="string">`json:&quot;num_objects&quot;`</span></span><br><span class="line">		&#125; <span class="string">`json:&quot;rgw.main&quot;`</span></span><br><span class="line">	&#125; <span class="string">`json:&quot;usage&quot;`</span></span><br><span class="line">	BucketQuota <span class="keyword">struct</span> &#123;</span><br><span class="line">		Enable     <span class="keyword">bool</span>    <span class="string">`json:&quot;enabled&quot;`</span></span><br><span class="line">		MaxSize    <span class="keyword">float64</span> <span class="string">`json:&quot;max_size&quot;`</span></span><br><span class="line">		MaxSizeKB  <span class="keyword">float64</span> <span class="string">`json:&quot;max_size_kb&quot;`</span></span><br><span class="line">		MaxObjects <span class="keyword">float64</span> <span class="string">`json:&quot;max_objects&quot;`</span></span><br><span class="line">	&#125; <span class="string">`json:&quot;bucket_quota&quot;`</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> namespace <span class="keyword">string</span> = <span class="string">&quot;unionstor_radosgw_usage&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> Collector <span class="keyword">struct</span> &#123;</span><br><span class="line">	mu                      sync.Mutex</span><br><span class="line">	BucketSizeBytes         *prometheus.GaugeVec</span><br><span class="line">	BucketSizeUtilizedBytes *prometheus.GaugeVec</span><br><span class="line">	BucketNumsObjects       *prometheus.GaugeVec</span><br><span class="line">	BucketQuotaEnable       *prometheus.GaugeVec</span><br><span class="line">	BucketQuotaMaxSize      *prometheus.GaugeVec</span><br><span class="line">	BucketQuotaMaxSizeBytes *prometheus.GaugeVec</span><br><span class="line">	BucketQuotaMaxObjects   *prometheus.GaugeVec</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">exec_cmd</span><span class="params">(command <span class="keyword">string</span>, timeout <span class="keyword">int</span>)</span> <span class="params">([]<span class="keyword">byte</span>, error)</span></span> &#123;</span><br><span class="line">	ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(timeout))</span><br><span class="line">	<span class="keyword">defer</span> cancel()</span><br><span class="line"></span><br><span class="line">	cmd := exec.CommandContext(ctx, <span class="string">&quot;bash&quot;</span>, <span class="string">&quot;-c&quot;</span>, command)</span><br><span class="line">	out, err := cmd.CombinedOutput()</span><br><span class="line">	<span class="keyword">return</span> out, err</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewCollector</span><span class="params">()</span> *<span class="title">Collector</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> &amp;Collector&#123;</span><br><span class="line">		BucketSizeBytes: prometheus.NewGaugeVec(prometheus.GaugeOpts&#123;</span><br><span class="line">			Namespace: namespace,</span><br><span class="line">			Name:      <span class="string">&quot;bucket_size_bytes&quot;</span>,</span><br><span class="line">			Help:      <span class="string">&quot;bucket_size_bytes&quot;</span>,</span><br><span class="line">		&#125;, []<span class="keyword">string</span>&#123;<span class="string">&quot;bucket&quot;</span>, <span class="string">&quot;owner&quot;</span>&#125;),</span><br><span class="line">		BucketSizeUtilizedBytes: prometheus.NewGaugeVec(prometheus.GaugeOpts&#123;</span><br><span class="line">			Namespace: namespace,</span><br><span class="line">			Name:      <span class="string">&quot;bucket_size_utilized_bytes&quot;</span>,</span><br><span class="line">			Help:      <span class="string">&quot;bucket_size_utilized_bytes&quot;</span>,</span><br><span class="line">		&#125;, []<span class="keyword">string</span>&#123;<span class="string">&quot;bucket&quot;</span>, <span class="string">&quot;owner&quot;</span>&#125;),</span><br><span class="line">		BucketNumsObjects: prometheus.NewGaugeVec(prometheus.GaugeOpts&#123;</span><br><span class="line">			Namespace: namespace,</span><br><span class="line">			Name:      <span class="string">&quot;bucket_num_objects&quot;</span>,</span><br><span class="line">			Help:      <span class="string">&quot;bucket_num_objects&quot;</span>,</span><br><span class="line">		&#125;, []<span class="keyword">string</span>&#123;<span class="string">&quot;bucket&quot;</span>, <span class="string">&quot;owner&quot;</span>&#125;),</span><br><span class="line">		BucketQuotaEnable: prometheus.NewGaugeVec(prometheus.GaugeOpts&#123;</span><br><span class="line">			Namespace: namespace,</span><br><span class="line">			Name:      <span class="string">&quot;bucket_quota_enable&quot;</span>,</span><br><span class="line">			Help:      <span class="string">&quot;bucket_quota_enable&quot;</span>,</span><br><span class="line">		&#125;, []<span class="keyword">string</span>&#123;<span class="string">&quot;bucket&quot;</span>, <span class="string">&quot;owner&quot;</span>&#125;),</span><br><span class="line">		BucketQuotaMaxSize: prometheus.NewGaugeVec(prometheus.GaugeOpts&#123;</span><br><span class="line">			Namespace: namespace,</span><br><span class="line">			Name:      <span class="string">&quot;bucket_quota_max_size&quot;</span>,</span><br><span class="line">			Help:      <span class="string">&quot;bucket_quota_max_size&quot;</span>,</span><br><span class="line">		&#125;, []<span class="keyword">string</span>&#123;<span class="string">&quot;bucket&quot;</span>, <span class="string">&quot;owner&quot;</span>&#125;),</span><br><span class="line">		BucketQuotaMaxSizeBytes: prometheus.NewGaugeVec(prometheus.GaugeOpts&#123;</span><br><span class="line">			Namespace: namespace,</span><br><span class="line">			Name:      <span class="string">&quot;bucket_quota_max_size_bytes&quot;</span>,</span><br><span class="line">			Help:      <span class="string">&quot;bucket_quota_max_size_bytes&quot;</span>,</span><br><span class="line">		&#125;, []<span class="keyword">string</span>&#123;<span class="string">&quot;bucket&quot;</span>, <span class="string">&quot;owner&quot;</span>&#125;),</span><br><span class="line">		BucketQuotaMaxObjects: prometheus.NewGaugeVec(prometheus.GaugeOpts&#123;</span><br><span class="line">			Namespace: namespace,</span><br><span class="line">			Name:      <span class="string">&quot;bucket_quota_max_objects&quot;</span>,</span><br><span class="line">			Help:      <span class="string">&quot;bucket_quota_max_objects&quot;</span>,</span><br><span class="line">		&#125;, []<span class="keyword">string</span>&#123;<span class="string">&quot;bucket&quot;</span>, <span class="string">&quot;owner&quot;</span>&#125;),</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Collector)</span> <span class="title">collectorList</span><span class="params">()</span> []<span class="title">prometheus</span>.<span class="title">Collector</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> []prometheus.Collector&#123;</span><br><span class="line">		c.BucketSizeBytes,</span><br><span class="line">		c.BucketSizeUtilizedBytes,</span><br><span class="line">		c.BucketNumsObjects,</span><br><span class="line">		c.BucketQuotaEnable,</span><br><span class="line">		c.BucketQuotaMaxSize,</span><br><span class="line">		c.BucketQuotaMaxSizeBytes,</span><br><span class="line">		c.BucketQuotaMaxObjects,</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Collector)</span> <span class="title">Describe</span><span class="params">(ch <span class="keyword">chan</span>&lt;- *prometheus.Desc)</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> _, metric := <span class="keyword">range</span> c.collectorList() &#123;</span><br><span class="line">		metric.Describe(ch)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Collector)</span> <span class="title">Collect</span><span class="params">(ch <span class="keyword">chan</span>&lt;- prometheus.Metric)</span></span> &#123;</span><br><span class="line">	c.mu.Lock()</span><br><span class="line">	<span class="keyword">defer</span> c.mu.Unlock()</span><br><span class="line">	<span class="keyword">if</span> err := c.collect(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Println(err.Error())</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> _, metric := <span class="keyword">range</span> c.collectorList() &#123;</span><br><span class="line">		metric.Collect(ch)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Collector)</span> <span class="title">collect</span><span class="params">()</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	cmd := <span class="string">&quot;radosgw-admin bucket stats&quot;</span></span><br><span class="line">	cmdRet, err := exec_cmd(cmd, <span class="number">30</span>)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		fmt.Println(<span class="string">&quot;exec bucket stats error:&quot;</span>, err)</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	bucketsUsage := []BucketUsage&#123;&#125;</span><br><span class="line">	err = json.Unmarshal(cmdRet, &amp;bucketsUsage)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		fmt.Println(<span class="string">&quot;parse cmd returen error:&quot;</span>, err)</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	c.BucketSizeBytes.Reset()</span><br><span class="line">	c.BucketSizeUtilizedBytes.Reset()</span><br><span class="line">	c.BucketNumsObjects.Reset()</span><br><span class="line">	c.BucketQuotaEnable.Reset()</span><br><span class="line">	c.BucketQuotaMaxSize.Reset()</span><br><span class="line">	c.BucketQuotaMaxSizeBytes.Reset()</span><br><span class="line">	c.BucketQuotaMaxObjects.Reset()</span><br><span class="line">	<span class="keyword">for</span> _, bucketUsage := <span class="keyword">range</span> bucketsUsage &#123;</span><br><span class="line">		bucketName := bucketUsage.Bucket</span><br><span class="line">		bucketOwner := bucketUsage.Owner</span><br><span class="line">		bucketSizeBytes := bucketUsage.Usage.RGWMain.SizeActual</span><br><span class="line">		bucketSizeUtilizedBytes := bucketUsage.Usage.RGWMain.SizeUtilized</span><br><span class="line">		bucketObjects := bucketUsage.Usage.RGWMain.NumObjects</span><br><span class="line">		<span class="keyword">var</span> bucketQuotaEnable <span class="keyword">float64</span> = <span class="number">0</span></span><br><span class="line">		<span class="keyword">if</span> bucketUsage.BucketQuota.Enable &#123;</span><br><span class="line">			bucketQuotaEnable = <span class="number">1</span></span><br><span class="line">		&#125;</span><br><span class="line">		bucketQuotaMaxSize := bucketUsage.BucketQuota.MaxSize</span><br><span class="line">		bucketQuotaMaxSizeBytes := bucketUsage.BucketQuota.MaxSizeKB</span><br><span class="line">		bucketQuotaMaxObjects := bucketUsage.BucketQuota.MaxObjects</span><br><span class="line">		c.BucketSizeBytes.WithLabelValues(bucketName, bucketOwner).Set(bucketSizeBytes)</span><br><span class="line">		c.BucketSizeUtilizedBytes.WithLabelValues(bucketName, bucketOwner).Set(bucketSizeUtilizedBytes)</span><br><span class="line">		c.BucketNumsObjects.WithLabelValues(bucketName, bucketOwner).Set(bucketObjects)</span><br><span class="line">		c.BucketQuotaEnable.WithLabelValues(bucketName, bucketOwner).Set(bucketQuotaEnable)</span><br><span class="line">		c.BucketQuotaMaxSize.WithLabelValues(bucketName, bucketOwner).Set(bucketQuotaMaxSize)</span><br><span class="line">		c.BucketQuotaMaxSizeBytes.WithLabelValues(bucketName, bucketOwner).Set(bucketQuotaMaxSizeBytes)</span><br><span class="line">		c.BucketQuotaMaxObjects.WithLabelValues(bucketName, bucketOwner).Set(bucketQuotaMaxObjects)</span><br><span class="line"></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	flag.StringVar(&amp;rootDir, <span class="string">&quot;path&quot;</span>, <span class="string">&quot;/&quot;</span>, <span class="string">&quot;A cephfs path&quot;</span>)</span><br><span class="line">	flag.IntVar(&amp;depth, <span class="string">&quot;depth&quot;</span>, <span class="number">2</span>, <span class="string">&quot;default depth&quot;</span>)</span><br><span class="line">	flag.IntVar(&amp;port, <span class="string">&quot;port&quot;</span>, <span class="number">8080</span>, <span class="string">&quot;default exporter port&quot;</span>)</span><br><span class="line">	flag.Parse()</span><br><span class="line">	prometheus.MustRegister(NewCollector())</span><br><span class="line">	http.Handle(<span class="string">&quot;/metrics&quot;</span>, promhttp.Handler())</span><br><span class="line">	log.Fatal(http.ListenAndServe(<span class="string">&quot;:&quot;</span>+strconv.Itoa(port), <span class="literal">nil</span>))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
@@ -198,36 +198,6 @@
       </categories>
       <tags>
         <tag>监控</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Golang开发环境配置</title>
-    <url>/posts/b66fdee6/</url>
-    <content><![CDATA[<h2 id="开发环境搭建"><a href="#开发环境搭建" class="headerlink" title="开发环境搭建"></a>开发环境搭建</h2><hr>
-<h3 id="安装Golang"><a href="#安装Golang" class="headerlink" title="安装Golang"></a>安装Golang</h3><ol>
-<li>Golang<a href="https://golang.org/">官网</a>,进入下载页面，选择对应的版本进行下载安装</li>
-<li>mac可以通过Homebrew <code>brew install go</code>进行安装</li>
-</ol>
-<blockquote>
-<p>安装完成后可以通过运行<code>go env</code>查看是否安装成功</p>
-</blockquote>
-<h3 id="关于GOROOT和GOPATH"><a href="#关于GOROOT和GOPATH" class="headerlink" title="关于GOROOT和GOPATH"></a>关于GOROOT和GOPATH</h3><h4 id="GOROOT"><a href="#GOROOT" class="headerlink" title="GOROOT"></a>GOROOT</h4><p>GOROOT就是你go的安装目录,使用Homebrew安装对应的目录就是<font color="DeepPink">/usr/local/Cellar/go/1.16.5/libexec</font>。</p>
-<h4 id="GOPATH"><a href="#GOPATH" class="headerlink" title="GOPATH"></a>GOPATH</h4><p>GOPATH是go的工作目录。谈GOPATH时需要引入一个环境变量<code>GO111MODULE</code>。<br>写本文时的go安装版本为1.16.5。GO111MODULE的参数为off、on和auto,其不同值的表现行为如下:</p>
-<ul>
-<li>auto (默认值)<ul>
-<li>当项目路径(go.mod)在GOPATH外时，其行为等同于GO111MODULE=on。这意味着可以将代码仓库存储于GOPATH之外</li>
-<li>当项目路径在GOPATH内，并且没有go.mod文件存在时，其行为等同于GO111MODULE=off</li>
-</ul>
-</li>
-<li>off<br>无模块支持，go会从GOPATH和vender文件夹寻找包</li>
-<li>on<br>模块支持,go会忽略GOPATH和vender文件夹，只根据<font color="DeepPink">go.mod</font>下载依赖。</li>
-</ul>
-]]></content>
-      <categories>
-        <category>GO</category>
-      </categories>
-      <tags>
-        <tag>GO</tag>
       </tags>
   </entry>
   <entry>
@@ -276,6 +246,33 @@
 ]]></content>
       <categories>
         <category>GO</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>for循环中i++和++i的区别和效率</title>
+    <url>/posts/2e389ba/</url>
+    <content><![CDATA[<h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>在看到一些书籍和视频中发现for循环里面有写++i,而不是i++</p>
+<span id="more"></span>
+
+<h1 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h1><p>for(A,B,C){<br>  D<br>}<br>执行顺序:</p>
+<ol>
+<li>进入循环执行A</li>
+<li>执行B</li>
+<li>执行D</li>
+<li>执行C</li>
+<li>再B，再D，再C直至退出循环</li>
+</ol>
+<p>即可知上述循环等同于:<br>for(A,B,){<br>  D<br>  C<br>}</p>
+<h1 id="区别"><a href="#区别" class="headerlink" title="区别"></a>区别</h1><p>i++</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 相当于</span></span><br><span class="line">i += <span class="number">1</span></span><br><span class="line"><span class="keyword">return</span> i</span><br></pre></td></tr></table></figure>
+
+<p>++i</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 相当于</span></span><br><span class="line">j = i</span><br><span class="line">i += <span class="number">1</span></span><br><span class="line"><span class="keyword">return</span> j</span><br></pre></td></tr></table></figure>
+
+<p>从上述差别中可以看到是有效率上面的差别</p>
+]]></content>
+      <categories>
+        <category>JS</category>
       </categories>
   </entry>
   <entry>
@@ -394,33 +391,6 @@
       </tags>
   </entry>
   <entry>
-    <title>for循环中i++和++i的区别和效率</title>
-    <url>/posts/2e389ba/</url>
-    <content><![CDATA[<h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>在看到一些书籍和视频中发现for循环里面有写++i,而不是i++</p>
-<span id="more"></span>
-
-<h1 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h1><p>for(A,B,C){<br>  D<br>}<br>执行顺序:</p>
-<ol>
-<li>进入循环执行A</li>
-<li>执行B</li>
-<li>执行D</li>
-<li>执行C</li>
-<li>再B，再D，再C直至退出循环</li>
-</ol>
-<p>即可知上述循环等同于:<br>for(A,B,){<br>  D<br>  C<br>}</p>
-<h1 id="区别"><a href="#区别" class="headerlink" title="区别"></a>区别</h1><p>i++</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 相当于</span></span><br><span class="line">i += <span class="number">1</span></span><br><span class="line"><span class="keyword">return</span> i</span><br></pre></td></tr></table></figure>
-
-<p>++i</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 相当于</span></span><br><span class="line">j = i</span><br><span class="line">i += <span class="number">1</span></span><br><span class="line"><span class="keyword">return</span> j</span><br></pre></td></tr></table></figure>
-
-<p>从上述差别中可以看到是有效率上面的差别</p>
-]]></content>
-      <categories>
-        <category>JS</category>
-      </categories>
-  </entry>
-  <entry>
     <title>关联数组详解</title>
     <url>/posts/485233ea/</url>
     <content><![CDATA[<h1 id="关于数组"><a href="#关于数组" class="headerlink" title="关于数组"></a>关于数组</h1><p>　　请记住,数组是对象的特殊形式。使用方括号访问数组元素就像使用方括号访问对象的属性一样。JavaScript将指定的数字索引值转换成字符串—-索引值1变成”1”—-然后将其作为属性名来使用。<br>　　数组的特别之处在于，当使用小于2^32的非负整数作为属性名时数组会自动维护其length属性值。<br>　　注意，可以使用负数和非整数来索引数组。这种情况加，数值转换为字符串，字符串作为属性名来用。既然名字不是非负整数，它就只能当做常规的对象属性，而非数组的索引。</p>
@@ -438,6 +408,59 @@
       <categories>
         <category>JS</category>
       </categories>
+  </entry>
+  <entry>
+    <title>Golang开发环境配置</title>
+    <url>/posts/b66fdee6/</url>
+    <content><![CDATA[<h2 id="开发环境搭建"><a href="#开发环境搭建" class="headerlink" title="开发环境搭建"></a>开发环境搭建</h2><hr>
+<h3 id="安装Golang"><a href="#安装Golang" class="headerlink" title="安装Golang"></a>安装Golang</h3><ol>
+<li>Golang<a href="https://golang.org/">官网</a>,进入下载页面，选择对应的版本进行下载安装</li>
+<li>mac可以通过Homebrew <code>brew install go</code>进行安装</li>
+</ol>
+<blockquote>
+<p>安装完成后可以通过运行<code>go env</code>查看是否安装成功</p>
+</blockquote>
+<h3 id="关于GOROOT和GOPATH"><a href="#关于GOROOT和GOPATH" class="headerlink" title="关于GOROOT和GOPATH"></a>关于GOROOT和GOPATH</h3><h4 id="GOROOT"><a href="#GOROOT" class="headerlink" title="GOROOT"></a>GOROOT</h4><p>GOROOT就是你go的安装目录,使用Homebrew安装对应的目录就是<font color="DeepPink">/usr/local/Cellar/go/1.16.5/libexec</font>。</p>
+<h4 id="GOPATH"><a href="#GOPATH" class="headerlink" title="GOPATH"></a>GOPATH</h4><p>GOPATH是go的工作目录。谈GOPATH时需要引入一个环境变量<code>GO111MODULE</code>。<br>写本文时的go安装版本为1.16.5。GO111MODULE的参数为off、on和auto,其不同值的表现行为如下:</p>
+<ul>
+<li>auto (默认值)<ul>
+<li>当项目路径(go.mod)在GOPATH外时，其行为等同于GO111MODULE=on。这意味着可以将代码仓库存储于GOPATH之外</li>
+<li>当项目路径在GOPATH内，并且没有go.mod文件存在时，其行为等同于GO111MODULE=off</li>
+</ul>
+</li>
+<li>off<br>无模块支持，go会从GOPATH和vender文件夹寻找包</li>
+<li>on<br>模块支持,go会忽略GOPATH和vender文件夹，只根据<font color="DeepPink">go.mod</font>下载依赖。</li>
+</ul>
+]]></content>
+      <categories>
+        <category>GO</category>
+      </categories>
+      <tags>
+        <tag>GO</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>K8S|Secret详解</title>
+    <url>/posts/5a8a6c8d/</url>
+    <content><![CDATA[<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>Secret解决了密码、token、秘钥等敏感数据的配置问题，而不需要把这些敏感数据暴露到镜像或者Pod Spec中。Secret可以以Volume或者环境变量的方式使用。</p>
+<h2 id="Secret类型"><a href="#Secret类型" class="headerlink" title="Secret类型"></a>Secret类型</h2><ul>
+<li>Service Account：用来访问Kubernetes API，由Kubernetes自动创建，并且会自动挂载到Pod的 /run/secrets/kubernetes.io/serviceaccount 目录中。</li>
+<li>Opaque：base64编码格式的Secret，用来存储密码、秘钥等。</li>
+<li>kubernetes.io/dockerconfigjson：用来存储私有docker registry的认证信息。<blockquote>
+<p>本文主要使用Opaque</p>
+</blockquote>
+</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 命令行直接创建</span></span><br><span class="line">kubectl create secret generic my-secret --from-literal=username=root --from-literal=password=root</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 使用文件创建</span></span><br><span class="line">echo -n &quot;root&quot; &gt; ./username</span><br><span class="line">echo -n &quot;root&quot; &gt; ./password</span><br><span class="line">kubectl create secret generic my-secret --from-file=./username --from-file=./password</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 先对字符串进行base64加密</span></span><br><span class="line">echo -n &#x27;root&#x27; | base64</span><br><span class="line">cm9vdA==</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 编辑资源文件</span></span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Secret</span><br><span class="line">metadata:</span><br><span class="line">  name: my-secret</span><br><span class="line">type: Opaque</span><br><span class="line">data:</span><br><span class="line">  username: base64</span><br><span class="line">  password: base64</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 解密</span></span><br><span class="line">kubectl get secrets my-secret -o jsonpath=&quot;&#123;.data.username&#125;&quot; | base64 -d</span><br><span class="line">root</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>K8S</category>
+        <category>Secret</category>
+      </categories>
+      <tags>
+        <tag>K8S</tag>
+      </tags>
   </entry>
   <entry>
     <title>引用类型和基本类型</title>
@@ -463,27 +486,23 @@
       </categories>
   </entry>
   <entry>
-    <title>K8S|Secret详解</title>
-    <url>/posts/5a8a6c8d/</url>
-    <content><![CDATA[<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>Secret解决了密码、token、秘钥等敏感数据的配置问题，而不需要把这些敏感数据暴露到镜像或者Pod Spec中。Secret可以以Volume或者环境变量的方式使用。</p>
-<h2 id="Secret类型"><a href="#Secret类型" class="headerlink" title="Secret类型"></a>Secret类型</h2><ul>
-<li>Service Account：用来访问Kubernetes API，由Kubernetes自动创建，并且会自动挂载到Pod的 /run/secrets/kubernetes.io/serviceaccount 目录中。</li>
-<li>Opaque：base64编码格式的Secret，用来存储密码、秘钥等。</li>
-<li>kubernetes.io/dockerconfigjson：用来存储私有docker registry的认证信息。<blockquote>
-<p>本文主要使用Opaque</p>
-</blockquote>
-</li>
+    <title>K8S中port|nodePort|targetPort概念的区分</title>
+    <url>/posts/68b4a711/</url>
+    <content><![CDATA[<h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><ul>
+<li>port是service的端口</li>
+<li>targetPort是容器的端口</li>
+<li>nodePort是容器所在宿主机的端口</li>
 </ul>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 命令行直接创建</span></span><br><span class="line">kubectl create secret generic my-secret --from-literal=username=root --from-literal=password=root</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 使用文件创建</span></span><br><span class="line">echo -n &quot;root&quot; &gt; ./username</span><br><span class="line">echo -n &quot;root&quot; &gt; ./password</span><br><span class="line">kubectl create secret generic my-secret --from-file=./username --from-file=./password</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 先对字符串进行base64加密</span></span><br><span class="line">echo -n &#x27;root&#x27; | base64</span><br><span class="line">cm9vdA==</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 编辑资源文件</span></span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Secret</span><br><span class="line">metadata:</span><br><span class="line">  name: my-secret</span><br><span class="line">type: Opaque</span><br><span class="line">data:</span><br><span class="line">  username: base64</span><br><span class="line">  password: base64</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 解密</span></span><br><span class="line">kubectl get secrets my-secret -o jsonpath=&quot;&#123;.data.username&#125;&quot; | base64 -d</span><br><span class="line">root</span><br></pre></td></tr></table></figure>
+<span id="more"></span>
 
+<h2 id="作用"><a href="#作用" class="headerlink" title="作用"></a>作用</h2><h3 id="port"><a href="#port" class="headerlink" title="port"></a>port</h3><p>集群内部服务暴露的端口，可以使用clusterIp:port来访问pod暴露的服务</p>
+<h3 id="targetPort"><a href="#targetPort" class="headerlink" title="targetPort"></a>targetPort</h3><p>最终容器上面暴露的服务端口，应用监听的端口</p>
+<h3 id="nodePort"><a href="#nodePort" class="headerlink" title="nodePort"></a>nodePort</h3><p>当服务类型为NodePort时，会在每个节点上暴露一个端口,可以他通过nodeIp:nodePort从集群外部访问服务。<br>nodeport默认端口范围为(30000-32767)</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>nodePort集群外部访问,pod为集群内部pod相互通信端口,targetPort字面意思就是容器暴露端口。</p>
 ]]></content>
       <categories>
         <category>K8S</category>
-        <category>Secret</category>
       </categories>
-      <tags>
-        <tag>K8S</tag>
-      </tags>
   </entry>
   <entry>
     <title>kubectl|patch命令使用</title>
@@ -566,25 +585,6 @@
       </categories>
   </entry>
   <entry>
-    <title>K8S中port|nodePort|targetPort概念的区分</title>
-    <url>/posts/68b4a711/</url>
-    <content><![CDATA[<h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><ul>
-<li>port是service的端口</li>
-<li>targetPort是容器的端口</li>
-<li>nodePort是容器所在宿主机的端口</li>
-</ul>
-<span id="more"></span>
-
-<h2 id="作用"><a href="#作用" class="headerlink" title="作用"></a>作用</h2><h3 id="port"><a href="#port" class="headerlink" title="port"></a>port</h3><p>集群内部服务暴露的端口，可以使用clusterIp:port来访问pod暴露的服务</p>
-<h3 id="targetPort"><a href="#targetPort" class="headerlink" title="targetPort"></a>targetPort</h3><p>最终容器上面暴露的服务端口，应用监听的端口</p>
-<h3 id="nodePort"><a href="#nodePort" class="headerlink" title="nodePort"></a>nodePort</h3><p>当服务类型为NodePort时，会在每个节点上暴露一个端口,可以他通过nodeIp:nodePort从集群外部访问服务。<br>nodeport默认端口范围为(30000-32767)</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>nodePort集群外部访问,pod为集群内部pod相互通信端口,targetPort字面意思就是容器暴露端口。</p>
-]]></content>
-      <categories>
-        <category>K8S</category>
-      </categories>
-  </entry>
-  <entry>
     <title>通过nodejs查看http的STAUS_CODE</title>
     <url>/posts/9a2f555f/</url>
     <content><![CDATA[<p>HTTP核心模块是Node.js网络的关键模块,该模块提供了一些属性、方法以及类。<br><code>http.STATUS_CODES此属性列出了所有的HTTP状态代码以及其描述</code></p>
@@ -639,26 +639,6 @@
 ]]></content>
   </entry>
   <entry>
-    <title>Work Environment setup</title>
-    <url>/posts/27b637df/</url>
-    <content><![CDATA[<h3 id="Mac-App"><a href="#Mac-App" class="headerlink" title="Mac App"></a>Mac App</h3><ul>
-<li>InsomniaX for Mac (Disable the sleep mode on your Mac)</li>
-<li>Karabiner-Elements (改建利器)</li>
-<li>Alfred</li>
-<li>Spectacle (分屏软件)</li>
-<li>dozer (系统栏图标隐藏工具)</li>
-<li>Itsycal (日历)</li>
-<li>Hammerspoon</li>
-<li>PicGo</li>
-<li>kubectx</li>
-</ul>
-<h3 id="vim-conf"><a href="#vim-conf" class="headerlink" title="vim.conf"></a>vim.conf</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&quot; 语法高亮</span><br><span class="line">syntax enable</span><br><span class="line">syntax on</span><br><span class="line">&quot; 编码设置</span><br><span class="line">set encoding=utf-8</span><br><span class="line">&quot; 显示匹配</span><br><span class="line">set showmatch</span><br><span class="line">&quot; 显示标尺</span><br><span class="line">set ruler</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">set backspace=indent,eol,start</span><br><span class="line"></span><br><span class="line">call plug#begin(&#x27;~/.vim/plugged&#x27;)</span><br><span class="line">Plug &#x27;Yggdroot/indentLine&#x27;</span><br><span class="line">Plug &#x27;ayu-theme/ayu-vim&#x27;</span><br><span class="line">call plug#end()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&quot; indentLine &#123;&#123;</span><br><span class="line">let g:indentLine_char = &#x27;┆&#x27;</span><br><span class="line">&quot; &#125;&#125;</span><br><span class="line">&quot; ayu-vim &#123;&#123;</span><br><span class="line">set termguicolors</span><br><span class="line">let ayucolor=&quot;dark&quot;</span><br><span class="line">colorscheme ayu</span><br><span class="line">&quot; &#125;&#125;</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>博客</category>
-      </categories>
-  </entry>
-  <entry>
     <title>Docker部署gitlab</title>
     <url>/posts/e32bdacf/</url>
     <content><![CDATA[<ul>
@@ -688,6 +668,69 @@
       <categories>
         <category>博客</category>
       </categories>
+  </entry>
+  <entry>
+    <title>awk-sdk-python验证S3服务</title>
+    <url>/posts/5a7446d2/</url>
+    <content><![CDATA[<blockquote>
+<p>How to use awk-sdk-python to validate access to s3 server</p>
+</blockquote>
+<ol>
+<li><p>Prerequisites<br>Install the AWS SDK for Python from <a href="https://aws.amazon.com/cn/sdk-for-python/">here</a></p>
+</li>
+<li><p>Example<br>Please replace endpoint_url,aws_access_key_id, aws_secret_access_key, Bucket and Object with your local setup in this example.py file.</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"><span class="comment"># _*_ coding:utf-8 _*_</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> boto3.session <span class="keyword">import</span> Session</span><br><span class="line"></span><br><span class="line">access_key = <span class="string">&quot;minioadmin&quot;</span></span><br><span class="line">secret_key = <span class="string">&quot;minioadmin&quot;</span></span><br><span class="line">endpoint_url = <span class="string">&quot;http://localhost:9000&quot;</span></span><br><span class="line">bucket_name = <span class="string">&quot;my-bucket&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Connect to s3</span></span><br><span class="line">session = Session(aws_access_key_id=access_key, aws_secret_access_key=secret_key)</span><br><span class="line">s3 = session.resource(<span class="string">&quot;s3&quot;</span>, endpoint_url=endpoint_url)</span><br><span class="line"></span><br><span class="line"><span class="comment"># List all the existing buckets</span></span><br><span class="line"><span class="keyword">for</span> bucket <span class="keyword">in</span> s3.buckets.<span class="built_in">all</span>():</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;bucket name:%s&quot;</span> % bucket.name)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Create a new bucket</span></span><br><span class="line">s3.create_bucket(Bucket=bucket_name)</span><br><span class="line">bucket = s3.Bucket(bucket_name)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Upload a file from local file system &#x27;/home/root/file.txt&#x27; to bucket</span></span><br><span class="line">bucket.upload_file(<span class="string">&quot;/home/root/file.txt&quot;</span>, <span class="string">&quot;file.txt&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># List all objects</span></span><br><span class="line"><span class="keyword">for</span> obj <span class="keyword">in</span> bucket.objects.<span class="built_in">all</span>():</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;obj name:%s&quot;</span> % obj.key)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Download the object &#x27;file.txt&#x27; from the bucket and save it to local file system</span></span><br><span class="line">bucket.download_file(<span class="string">&quot;file.txt&quot;</span>, <span class="string">&quot;/tmp/file.txt&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Delete all the objects</span></span><br><span class="line">bucket.objects.<span class="built_in">filter</span>().delete()</span><br><span class="line"></span><br><span class="line"><span class="comment"># Delete bucket</span></span><br><span class="line">bucket.delete()</span><br></pre></td></tr></table></figure></li>
+</ol>
+<p><code>TODO: resource和client的差别</code></p>
+]]></content>
+      <categories>
+        <category>S3</category>
+      </categories>
+      <tags>
+        <tag>TODO</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Work Environment setup</title>
+    <url>/posts/27b637df/</url>
+    <content><![CDATA[<h3 id="Mac-App"><a href="#Mac-App" class="headerlink" title="Mac App"></a>Mac App</h3><ul>
+<li>InsomniaX for Mac (Disable the sleep mode on your Mac)</li>
+<li>Karabiner-Elements (改建利器)</li>
+<li>Alfred</li>
+<li>Spectacle (分屏软件)</li>
+<li>dozer (系统栏图标隐藏工具)</li>
+<li>Itsycal (日历)</li>
+<li>Hammerspoon</li>
+<li>PicGo</li>
+<li>kubectx</li>
+</ul>
+<h3 id="vim-conf"><a href="#vim-conf" class="headerlink" title="vim.conf"></a>vim.conf</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&quot; 语法高亮</span><br><span class="line">syntax enable</span><br><span class="line">syntax on</span><br><span class="line">&quot; 编码设置</span><br><span class="line">set encoding=utf-8</span><br><span class="line">&quot; 显示匹配</span><br><span class="line">set showmatch</span><br><span class="line">&quot; 显示标尺</span><br><span class="line">set ruler</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">set backspace=indent,eol,start</span><br><span class="line"></span><br><span class="line">call plug#begin(&#x27;~/.vim/plugged&#x27;)</span><br><span class="line">Plug &#x27;Yggdroot/indentLine&#x27;</span><br><span class="line">Plug &#x27;ayu-theme/ayu-vim&#x27;</span><br><span class="line">call plug#end()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&quot; indentLine &#123;&#123;</span><br><span class="line">let g:indentLine_char = &#x27;┆&#x27;</span><br><span class="line">&quot; &#125;&#125;</span><br><span class="line">&quot; ayu-vim &#123;&#123;</span><br><span class="line">set termguicolors</span><br><span class="line">let ayucolor=&quot;dark&quot;</span><br><span class="line">colorscheme ayu</span><br><span class="line">&quot; &#125;&#125;</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>博客</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>代码覆盖率测试工具codecov使用</title>
+    <url>/posts/5a4d11d/</url>
+    <content><![CDATA[<h3 id="codecov是什么"><a href="#codecov是什么" class="headerlink" title="codecov是什么"></a>codecov是什么</h3><p>codecov是一个开源的测试结果展示平台，并将测试结果可视化。</p>
+<blockquote>
+<p>网址 <a href="https://codecov.io/">https://codecov.io</a></p>
+</blockquote>
+<h3 id="如何使用codecov"><a href="#如何使用codecov" class="headerlink" title="如何使用codecov"></a>如何使用codecov</h3><ol>
+<li>访问codecov.io网址，使用github账号进行登录</li>
+<li>选择需要访问的测试覆盖率的仓库,如<a href="https://app.codecov.io/gh/">https://app.codecov.io/gh/</a> 首页没有找到对应的repo，可以先点击Not yet setup查看能否找到，再点击setup repo,如果这时还未找到，可以手动在浏览器中输入<a href="https://app.codecov.io/gh/$%7Borg%7D/$%7Brepo%7D">https://app.codecov.io/gh/${org}/${repo}</a> 进行查看。<br><img src="https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202109021512747.png" alt="pic-1"><br><img src="https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202109021512836.png" alt="pic-2"></li>
+<li>项目setup以后，在项目中复制CODECOV_TOKEN,并在github中配置对应的secrets<br><img src="https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202109021514408.png" alt="pic-3"></li>
+<li>使用github action触发上传<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">name:</span> <span class="string">Workflow</span> <span class="string">for</span> <span class="string">codecov</span></span><br><span class="line"><span class="attr">on:</span> [<span class="string">push</span>, <span class="string">pull_request</span>]</span><br><span class="line"><span class="attr">jobs:</span></span><br><span class="line">  <span class="attr">run:</span></span><br><span class="line">    <span class="attr">runs-on:</span> <span class="string">ubuntu-latest</span></span><br><span class="line">    <span class="attr">steps:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">uses:</span> <span class="string">actions/checkout@master</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Setup</span> <span class="string">Python</span></span><br><span class="line">      <span class="attr">uses:</span> <span class="string">actions/setup-python@master</span></span><br><span class="line">      <span class="attr">with:</span></span><br><span class="line">        <span class="attr">python-version:</span> <span class="number">3.8</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Generate</span> <span class="string">coverage</span> <span class="string">report</span></span><br><span class="line">      <span class="attr">run:</span> <span class="string">|</span></span><br><span class="line"><span class="string">        pip install coverage</span></span><br><span class="line"><span class="string">        coverage erase</span></span><br><span class="line"><span class="string">        coverage run setup.py test</span></span><br><span class="line"><span class="string">        coverage xml</span></span><br><span class="line"><span class="string"></span>    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Upload</span> <span class="string">coverage</span> <span class="string">to</span> <span class="string">Codecov</span></span><br><span class="line">      <span class="attr">uses:</span> <span class="string">codecov/codecov-action@v2</span></span><br><span class="line">      <span class="attr">with:</span></span><br><span class="line">        <span class="attr">token:</span> <span class="string">$&#123;&#123;</span> <span class="string">secrets.CODECOV_TOKEN</span> <span class="string">&#125;&#125;</span></span><br><span class="line">        <span class="attr">files:</span> <span class="string">./coverage.xml</span></span><br></pre></td></tr></table></figure></li>
+<li>访问<a href="https://app.codecov.io/gh/$%7Borg%7D/$%7Brepo%7D">https://app.codecov.io/gh/${org}/${repo}</a> 查看对应项目的代码覆盖率<br><img src="https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202109021535218.png" alt="pic-4"></li>
+</ol>
+]]></content>
+      <categories>
+        <category>博客</category>
+      </categories>
+      <tags>
+        <tag>测试</tag>
+      </tags>
   </entry>
   <entry>
     <title>版本号命名规则指南</title>
@@ -724,26 +767,5 @@
       <categories>
         <category>博客</category>
       </categories>
-  </entry>
-  <entry>
-    <title>awk-sdk-python验证S3服务</title>
-    <url>/posts/5a7446d2/</url>
-    <content><![CDATA[<blockquote>
-<p>How to use awk-sdk-python to validate access to s3 server</p>
-</blockquote>
-<ol>
-<li><p>Prerequisites<br>Install the AWS SDK for Python from <a href="https://aws.amazon.com/cn/sdk-for-python/">here</a></p>
-</li>
-<li><p>Example<br>Please replace endpoint_url,aws_access_key_id, aws_secret_access_key, Bucket and Object with your local setup in this example.py file.</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"><span class="comment"># _*_ coding:utf-8 _*_</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> boto3.session <span class="keyword">import</span> Session</span><br><span class="line"></span><br><span class="line">access_key = <span class="string">&quot;minioadmin&quot;</span></span><br><span class="line">secret_key = <span class="string">&quot;minioadmin&quot;</span></span><br><span class="line">endpoint_url = <span class="string">&quot;http://localhost:9000&quot;</span></span><br><span class="line">bucket_name = <span class="string">&quot;my-bucket&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Connect to s3</span></span><br><span class="line">session = Session(aws_access_key_id=access_key, aws_secret_access_key=secret_key)</span><br><span class="line">s3 = session.resource(<span class="string">&quot;s3&quot;</span>, endpoint_url=endpoint_url)</span><br><span class="line"></span><br><span class="line"><span class="comment"># List all the existing buckets</span></span><br><span class="line"><span class="keyword">for</span> bucket <span class="keyword">in</span> s3.buckets.<span class="built_in">all</span>():</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;bucket name:%s&quot;</span> % bucket.name)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Create a new bucket</span></span><br><span class="line">s3.create_bucket(Bucket=bucket_name)</span><br><span class="line">bucket = s3.Bucket(bucket_name)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Upload a file from local file system &#x27;/home/root/file.txt&#x27; to bucket</span></span><br><span class="line">bucket.upload_file(<span class="string">&quot;/home/root/file.txt&quot;</span>, <span class="string">&quot;file.txt&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># List all objects</span></span><br><span class="line"><span class="keyword">for</span> obj <span class="keyword">in</span> bucket.objects.<span class="built_in">all</span>():</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;obj name:%s&quot;</span> % obj.key)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Download the object &#x27;file.txt&#x27; from the bucket and save it to local file system</span></span><br><span class="line">bucket.download_file(<span class="string">&quot;file.txt&quot;</span>, <span class="string">&quot;/tmp/file.txt&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Delete all the objects</span></span><br><span class="line">bucket.objects.<span class="built_in">filter</span>().delete()</span><br><span class="line"></span><br><span class="line"><span class="comment"># Delete bucket</span></span><br><span class="line">bucket.delete()</span><br></pre></td></tr></table></figure></li>
-</ol>
-<p><code>TODO: resource和client的差别</code></p>
-]]></content>
-      <categories>
-        <category>S3</category>
-      </categories>
-      <tags>
-        <tag>TODO</tag>
-      </tags>
   </entry>
 </search>

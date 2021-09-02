@@ -23,29 +23,33 @@
   <script src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.js" integrity="sha256-a5YRB27CcBwBFcT5EF/f3E4vzIqyHrSR878nseNYw64=" crossorigin="anonymous"></script>
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Mist","version":"8.7.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
-<meta name="description" content="Mac环境本地搭建Gitlab进行测试">
+<meta name="description" content="codecov只是一个测试结果展示平台，并不是测试工具(平台)">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Docker部署gitlab">
-<meta property="og:url" content="http://example.com/posts/e32bdacf/index.html">
+<meta property="og:title" content="代码覆盖率测试工具codecov使用">
+<meta property="og:url" content="http://example.com/posts/5a4d11d/index.html">
 <meta property="og:site_name" content="Vincent&#39;s Blog">
-<meta property="og:description" content="Mac环境本地搭建Gitlab进行测试">
+<meta property="og:description" content="codecov只是一个测试结果展示平台，并不是测试工具(平台)">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202108191541954.png">
-<meta property="article:published_time" content="2021-08-17T03:45:58.080Z">
-<meta property="article:modified_time" content="2021-08-19T09:52:57.548Z">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202109021512747.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202109021512836.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202109021514408.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202109021535218.png">
+<meta property="article:published_time" content="2021-09-02T06:56:51.000Z">
+<meta property="article:modified_time" content="2021-09-02T07:35:29.434Z">
 <meta property="article:author" content="Vincent Zhou">
+<meta property="article:tag" content="测试">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202108191541954.png">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202109021512747.png">
 
 
-<link rel="canonical" href="http://example.com/posts/e32bdacf/">
+<link rel="canonical" href="http://example.com/posts/5a4d11d/">
 
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/posts/e32bdacf/","path":"posts/e32bdacf/","title":"Docker部署gitlab"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/posts/5a4d11d/","path":"posts/5a4d11d/","title":"代码覆盖率测试工具codecov使用"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>Docker部署gitlab | Vincent's Blog</title>
+<title>代码覆盖率测试工具codecov使用 | Vincent's Blog</title>
   
 
   <script src="/js/third-party/analytics/baidu-analytics.js"></script>
@@ -151,7 +155,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87"><span class="nav-number">1.</span> <span class="nav-text">1.环境准备</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-%E6%8B%89%E5%8F%96%E6%9C%80%E6%96%B0%E5%AE%B9%E5%99%A8"><span class="nav-number">1.1.</span> <span class="nav-text">1.1 拉取最新容器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-%E6%9E%84%E5%BB%BA%E5%AE%B9%E5%99%A8"><span class="nav-number">1.2.</span> <span class="nav-text">1.2 构建容器</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-2-1-%E5%88%9B%E5%BB%BA%E7%9B%AE%E5%BD%95%EF%BC%8C%E7%94%A8%E4%BA%8E%E6%95%B0%E6%8D%AE%E6%8C%81%E4%B9%85%E5%8C%96"><span class="nav-number">1.2.1.</span> <span class="nav-text">1.2.1 创建目录，用于数据持久化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-2-2-%E6%9E%84%E5%BB%BA%E5%AE%B9%E5%99%A8"><span class="nav-number">1.2.2.</span> <span class="nav-text">1.2.2 构建容器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-2-3-%E6%9F%A5%E7%9C%8B%E5%AE%B9%E5%99%A8"><span class="nav-number">1.2.3.</span> <span class="nav-text">1.2.3 查看容器</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E9%85%8D%E7%BD%AEGitlab%E8%AE%BF%E9%97%AE%E5%9C%B0%E5%9D%80"><span class="nav-number">2.</span> <span class="nav-text">2. 配置Gitlab访问地址</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E8%AE%BF%E9%97%AE%E6%9C%8D%E5%8A%A1"><span class="nav-number">3.</span> <span class="nav-text">3. 访问服务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-mac%E8%AE%BF%E9%97%AE%E5%AE%BF%E4%B8%BB%E6%9C%BA%E7%BD%91%E7%BB%9C"><span class="nav-number">4.</span> <span class="nav-text">4. mac访问宿主机网络</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#codecov%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-number">1.</span> <span class="nav-text">codecov是什么</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8codecov"><span class="nav-number">2.</span> <span class="nav-text">如何使用codecov</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -219,7 +223,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/posts/e32bdacf/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/posts/5a4d11d/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/panda.jpg">
@@ -232,7 +236,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Docker部署gitlab
+          代码覆盖率测试工具codecov使用
         </h1>
 
         <div class="post-meta-container">
@@ -250,7 +254,7 @@
   
 </div>
 
-            <div class="post-description">Mac环境本地搭建Gitlab进行测试</div>
+            <div class="post-description">codecov只是一个测试结果展示平台，并不是测试工具(平台)</div>
         </div>
       </header>
 
@@ -258,29 +262,17 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <ul>
-<li><a href="#1%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87">1.环境准备</a><ul>
-<li><a href="#11-%E6%8B%89%E5%8F%96%E6%9C%80%E6%96%B0%E5%AE%B9%E5%99%A8">1.1 拉取最新容器</a></li>
-<li><a href="#12-%E6%9E%84%E5%BB%BA%E5%AE%B9%E5%99%A8">1.2 构建容器</a><ul>
-<li><a href="#121-%E5%88%9B%E5%BB%BA%E7%9B%AE%E5%BD%95%E7%94%A8%E4%BA%8E%E6%95%B0%E6%8D%AE%E6%8C%81%E4%B9%85%E5%8C%96">1.2.1 创建目录，用于数据持久化</a></li>
-<li><a href="#122-%E6%9E%84%E5%BB%BA%E5%AE%B9%E5%99%A8">1.2.2 构建容器</a></li>
-<li><a href="#123-%E6%9F%A5%E7%9C%8B%E5%AE%B9%E5%99%A8">1.2.3 查看容器</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="#2-%E9%85%8D%E7%BD%AEgitlab%E8%AE%BF%E9%97%AE%E5%9C%B0%E5%9D%80">2. 配置Gitlab访问地址</a></li>
-<li><a href="#3-%E8%AE%BF%E9%97%AE%E6%9C%8D%E5%8A%A1">3. 访问服务</a></li>
-<li><a href="#4-mac%E8%AE%BF%E9%97%AE%E5%AE%BF%E4%B8%BB%E6%9C%BA%E7%BD%91%E7%BB%9C">4. mac访问宿主机网络</a></li>
-</ul>
-<h2 id="1-环境准备"><a href="#1-环境准备" class="headerlink" title="1.环境准备"></a>1.环境准备</h2><h3 id="1-1-拉取最新容器"><a href="#1-1-拉取最新容器" class="headerlink" title="1.1 拉取最新容器"></a>1.1 拉取最新容器</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker pull gitlab/gitlab-ce:latest</span><br></pre></td></tr></table></figure>
-<h3 id="1-2-构建容器"><a href="#1-2-构建容器" class="headerlink" title="1.2 构建容器"></a>1.2 构建容器</h3><h4 id="1-2-1-创建目录，用于数据持久化"><a href="#1-2-1-创建目录，用于数据持久化" class="headerlink" title="1.2.1 创建目录，用于数据持久化"></a>1.2.1 创建目录，用于数据持久化</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mkdir -p $&#123;gitlab-home&#125;/&#123;data,config,logs&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="1-2-2-构建容器"><a href="#1-2-2-构建容器" class="headerlink" title="1.2.2 构建容器"></a>1.2.2 构建容器</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">docker run -dit \</span><br><span class="line">-p 443:443 \</span><br><span class="line">-p 80:80 \</span><br><span class="line">-p 22:22 \</span><br><span class="line">--name gitlab --restart always \</span><br><span class="line">-v $&#123;gitlab-home&#125;/config:/etc/gitlab \</span><br><span class="line">-v $&#123;gitlab-home&#125;/logs:/var/log/gitlab \</span><br><span class="line">-v $&#123;gitlab-home&#125;/data:/var/opt/gitlab \</span><br><span class="line">gitlab/gitlab-ce</span><br></pre></td></tr></table></figure>
-<h4 id="1-2-3-查看容器"><a href="#1-2-3-查看容器" class="headerlink" title="1.2.3 查看容器"></a>1.2.3 查看容器</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker ps -a | grep gitlab</span><br></pre></td></tr></table></figure>
-<h2 id="2-配置Gitlab访问地址"><a href="#2-配置Gitlab访问地址" class="headerlink" title="2. 配置Gitlab访问地址"></a>2. 配置Gitlab访问地址</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># step1: 进入容器</span><br><span class="line"># step2: vim /etc/gitlab/gitlab.rb 修改 external_url</span><br><span class="line"># step3: 重启容器</span><br></pre></td></tr></table></figure>
-<h2 id="3-访问服务"><a href="#3-访问服务" class="headerlink" title="3. 访问服务"></a>3. 访问服务</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">## 管理员默认用户 root</span><br><span class="line">## 管理员默认密码 /etc/gitlab/initial_root_password</span><br></pre></td></tr></table></figure>
-<h2 id="4-mac访问宿主机网络"><a href="#4-mac访问宿主机网络" class="headerlink" title="4. mac访问宿主机网络"></a>4. mac访问宿主机网络</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># step1: 使用Gitlab管理员账号修改如下配置</span><br><span class="line">Menu =&gt; Admin =&gt; Settings =&gt; Network =&gt; Outbound requests</span><br><span class="line">勾选Allow requests to the local network from web hooks and services</span><br><span class="line"># step2: container中使用docker.for.mac.localhost访问宿主机</span><br></pre></td></tr></table></figure>
-<p><img src="https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202108191541954.png" alt="etwork-setting"></p>
+        <h3 id="codecov是什么"><a href="#codecov是什么" class="headerlink" title="codecov是什么"></a>codecov是什么</h3><p>codecov是一个开源的测试结果展示平台，并将测试结果可视化。</p>
+<blockquote>
+<p>网址 <a target="_blank" rel="noopener" href="https://codecov.io/">https://codecov.io</a></p>
+</blockquote>
+<h3 id="如何使用codecov"><a href="#如何使用codecov" class="headerlink" title="如何使用codecov"></a>如何使用codecov</h3><ol>
+<li>访问codecov.io网址，使用github账号进行登录</li>
+<li>选择需要访问的测试覆盖率的仓库,如<a target="_blank" rel="noopener" href="https://app.codecov.io/gh/">https://app.codecov.io/gh/</a> 首页没有找到对应的repo，可以先点击Not yet setup查看能否找到，再点击setup repo,如果这时还未找到，可以手动在浏览器中输入<a target="_blank" rel="noopener" href="https://app.codecov.io/gh/$%7Borg%7D/$%7Brepo%7D">https://app.codecov.io/gh/${org}/${repo}</a> 进行查看。<br><img src="https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202109021512747.png" alt="pic-1"><br><img src="https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202109021512836.png" alt="pic-2"></li>
+<li>项目setup以后，在项目中复制CODECOV_TOKEN,并在github中配置对应的secrets<br><img src="https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202109021514408.png" alt="pic-3"></li>
+<li>使用github action触发上传<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">name:</span> <span class="string">Workflow</span> <span class="string">for</span> <span class="string">codecov</span></span><br><span class="line"><span class="attr">on:</span> [<span class="string">push</span>, <span class="string">pull_request</span>]</span><br><span class="line"><span class="attr">jobs:</span></span><br><span class="line">  <span class="attr">run:</span></span><br><span class="line">    <span class="attr">runs-on:</span> <span class="string">ubuntu-latest</span></span><br><span class="line">    <span class="attr">steps:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">uses:</span> <span class="string">actions/checkout@master</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Setup</span> <span class="string">Python</span></span><br><span class="line">      <span class="attr">uses:</span> <span class="string">actions/setup-python@master</span></span><br><span class="line">      <span class="attr">with:</span></span><br><span class="line">        <span class="attr">python-version:</span> <span class="number">3.8</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Generate</span> <span class="string">coverage</span> <span class="string">report</span></span><br><span class="line">      <span class="attr">run:</span> <span class="string">|</span></span><br><span class="line"><span class="string">        pip install coverage</span></span><br><span class="line"><span class="string">        coverage erase</span></span><br><span class="line"><span class="string">        coverage run setup.py test</span></span><br><span class="line"><span class="string">        coverage xml</span></span><br><span class="line"><span class="string"></span>    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Upload</span> <span class="string">coverage</span> <span class="string">to</span> <span class="string">Codecov</span></span><br><span class="line">      <span class="attr">uses:</span> <span class="string">codecov/codecov-action@v2</span></span><br><span class="line">      <span class="attr">with:</span></span><br><span class="line">        <span class="attr">token:</span> <span class="string">$&#123;&#123;</span> <span class="string">secrets.CODECOV_TOKEN</span> <span class="string">&#125;&#125;</span></span><br><span class="line">        <span class="attr">files:</span> <span class="string">./coverage.xml</span></span><br></pre></td></tr></table></figure></li>
+<li>访问<a target="_blank" rel="noopener" href="https://app.codecov.io/gh/$%7Borg%7D/$%7Brepo%7D">https://app.codecov.io/gh/${org}/${repo}</a> 查看对应项目的代码覆盖率<br><img src="https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202109021535218.png" alt="pic-4"></li>
+</ol>
 
     </div>
 
@@ -289,16 +281,19 @@
     
 
     <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%B5%8B%E8%AF%95/" rel="tag"># 测试</a>
+          </div>
 
         
 
           <div class="post-nav">
             <div class="post-nav-item">
+                <a href="/posts/1375a0ac/" rel="prev" title="NODEJS|child_process模块">
+                  <i class="fa fa-chevron-left"></i> NODEJS|child_process模块
+                </a>
             </div>
             <div class="post-nav-item">
-                <a href="/posts/27b637df/" rel="next" title="Work Environment setup">
-                  Work Environment setup <i class="fa fa-chevron-right"></i>
-                </a>
             </div>
           </div>
     </footer>
