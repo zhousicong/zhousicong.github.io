@@ -481,7 +481,7 @@ yandex_site_verification:
 
 # Baidu Webmaster tools verification.
 # See: https://ziyuan.baidu.com/site
-baidu_site_verification:
+baidu_site_verification: code-jhwWLIEv4w
 
 
 # ---------------------------------------------------------------
@@ -670,7 +670,7 @@ google_analytics:
 
 # Baidu Analytics
 # See: https://tongji.baidu.com
-baidu_analytics: # <app_id>
+baidu_analytics: 6983cf1bfc8ada9e8677a0cd535fdc05 # <app_id>
 
 # Growingio Analytics
 # See: https://www.growingio.com
@@ -705,7 +705,7 @@ firestore:
 # Show Views / Visitors of the website / page with busuanzi.
 # For more information: http://ibruce.info/2015/04/04/busuanzi/
 busuanzi_count:
-  enable: true
+  enable: false
   total_visitors: true
   total_visitors_icon: fa fa-user
   total_views: true
