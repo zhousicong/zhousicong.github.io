@@ -77,46 +77,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Argo Workflow实践|安装部署</title>
-    <url>/article/1e633edc/</url>
-    <content><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>　　Argo Workflow是一个云原生的工作流引擎，专注于编排并行任务。特点如下:</p>
-<ul>
-<li>使用K8S的CRD来定义工作流，本身也是CRD，可以使用yml直接定义</li>
-<li>工作流的每一步都是一个容器</li>
-<li>可以将多步骤工作流建模为一些列的任务，或者使用DAG(有向无环图)描述任务之间的关系</li>
-<li>可以短时间内轻松运行用于机器学习或数据处理的计算密集型作业</li>
-</ul>
-<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><blockquote>
-<p>请先安装K8S,本例采用快捷方式安装<br>本文安装时间为202108018,如果采用官网文档推荐<a href="https://raw.githubusercontent.com/argoproj/argo-workflows/master/manifests/quick-start-postgres.yaml">资源文件</a>会出现浏览器访问报错但是命令行访问argo server正常的情况,<a href="https://github.com/argoproj/argo-workflows/issues/5573">相关issue</a><br>本例直接使用3.1.6版本资源文件，此版本已fix上述issue</p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kubectl create ns argo</span><br><span class="line">kubectl apply -n argo -f https://github.com/argoproj/argo-workflows/releases/download/v3.1.6/quick-start-postgres.yaml</span><br></pre></td></tr></table></figure>
-<p>安装完成后，会有如下4个pod:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">NAME                                  READY   STATUS    RESTARTS   AGE</span><br><span class="line">argo-server-7949b545cc-szs9h          1/1     Running   0          3m49s</span><br><span class="line">minio-77d6796f8d-g6rsv                1/1     Running   0          3m49s</span><br><span class="line">postgres-546d9d68b-4xtrq              1/1     Running   0          3m49s</span><br><span class="line">workflow-controller-bd8bc5f86-kxsfv   1/1     Running   0          3m49s</span><br></pre></td></tr></table></figure>
-<p>其中:</p>
-<ul>
-<li>argo-server为argo服务端</li>
-<li>minio为制品仓库</li>
-<li>postgres为数据库</li>
-<li>workflow-controller为流程控制器</li>
-</ul>
-<h2 id="访问Argo-Workflows-UI"><a href="#访问Argo-Workflows-UI" class="headerlink" title="访问Argo Workflows UI"></a>访问Argo Workflows UI</h2><ol>
-<li>kubectl port-forward<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kubectl -n argo port-forward svc/argo-server 2746:2746</span><br></pre></td></tr></table></figure></li>
-<li>Expose a loadBalancer<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kubectl patch svc argo-server -n argo -p &#x27;&#123;&quot;spec&quot;: &#123;&quot;type&quot;: &quot;LoadBalancer&quot;&#125;&#125;&#x27;</span><br><span class="line"></span><br><span class="line">NAME                          TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE</span><br><span class="line">argo-server                   LoadBalancer   10.110.3.94     &lt;pending&gt;     2746:31603/TCP   12m</span><br><span class="line">minio                         ClusterIP      10.111.108.35   &lt;none&gt;        9000/TCP         12m</span><br><span class="line">postgres                      ClusterIP      10.97.250.221   &lt;none&gt;        5432/TCP         12m</span><br><span class="line">workflow-controller-metrics   ClusterIP      10.107.148.72   &lt;none&gt;        9090/TCP         12m</span><br></pre></td></tr></table></figure></li>
-<li>Ingress<br><code>示例略</code></li>
-</ol>
-<p><img src="https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202108191531513.png" alt="Argo Workflow UI"></p>
-<h2 id="示例验证"><a href="#示例验证" class="headerlink" title="示例验证"></a>示例验证</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&gt; argo submit -n argo --watch https://raw.githubusercontent.com/argoproj/argo-workflows/master/examples/hello-world.yaml</span><br><span class="line"></span><br><span class="line">apiVersion: argoproj.io/v1alpha1</span><br><span class="line">kind: Workflow</span><br><span class="line">metadata:</span><br><span class="line">  generateName: hello-world-</span><br><span class="line">  labels:</span><br><span class="line">    workflows.argoproj.io/archive-strategy: &quot;false&quot;</span><br><span class="line">  annotations:</span><br><span class="line">    workflows.argoproj.io/description: |</span><br><span class="line">      This is a simple hello world example.</span><br><span class="line">      You can also run it in Python: https://couler-proj.github.io/couler/examples/#hello-world</span><br><span class="line">spec:</span><br><span class="line">  entrypoint: whalesay</span><br><span class="line">  templates:</span><br><span class="line">  - name: whalesay</span><br><span class="line">    container:</span><br><span class="line">      image: docker/whalesay:latest</span><br><span class="line">      command: [cowsay]</span><br><span class="line">      args: [&quot;hello world&quot;]</span><br><span class="line"></span><br><span class="line">&gt; argo list -n argo</span><br><span class="line">NAME                STATUS      AGE   DURATION   PRIORITY</span><br><span class="line">hello-world-hphdr   Succeeded   43s   10s        0</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&gt; argo get -n argo @latest</span><br><span class="line">Name:                hello-world-hphdr</span><br><span class="line">Namespace:           argo-events</span><br><span class="line">ServiceAccount:      default</span><br><span class="line">Status:              Succeeded</span><br><span class="line">Conditions:</span><br><span class="line"> PodRunning          False</span><br><span class="line"> Completed           True</span><br><span class="line">Created:             Thu Aug 19 15:34:37 +0800 (1 minute ago)</span><br><span class="line">Started:             Thu Aug 19 15:34:37 +0800 (1 minute ago)</span><br><span class="line">Finished:            Thu Aug 19 15:34:47 +0800 (1 minute ago)</span><br><span class="line">Duration:            10 seconds</span><br><span class="line">Progress:            1/1</span><br><span class="line">ResourcesDuration:   7s*(1 cpu),7s*(100Mi memory)</span><br><span class="line"></span><br><span class="line">STEP                  TEMPLATE  PODNAME            DURATION  MESSAGE</span><br><span class="line"> ✔ hello-world-hphdr  whalesay  hello-world-hphdr  7s</span><br><span class="line"></span><br><span class="line">This workflow does not have security context set. You can run your workflow pods more securely by setting it.</span><br><span class="line">Learn more at https://argoproj.github.io/argo-workflows/workflow-pod-security-context/</span><br><span class="line"></span><br><span class="line">&gt; argo logs -n argo @latest</span><br><span class="line">hello-world-hphdr:  _____________</span><br><span class="line">hello-world-hphdr: &lt; hello world &gt;</span><br><span class="line">hello-world-hphdr:  -------------</span><br><span class="line">hello-world-hphdr:     \</span><br><span class="line">hello-world-hphdr:      \</span><br><span class="line">hello-world-hphdr:       \</span><br><span class="line">hello-world-hphdr:                     ##        .</span><br><span class="line">hello-world-hphdr:               ## ## ##       ==</span><br><span class="line">hello-world-hphdr:            ## ## ## ##      ===</span><br><span class="line">hello-world-hphdr:        /&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;___/ ===</span><br><span class="line">hello-world-hphdr:   ~~~ &#123;~~ ~~~~ ~~~ ~~~~ ~~ ~ /  ===- ~~~</span><br><span class="line">hello-world-hphdr:        \______ o          __/</span><br><span class="line">hello-world-hphdr:         \    \        __/</span><br><span class="line">hello-world-hphdr:           \____\______/</span><br></pre></td></tr></table></figure>
-<p><img src="https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202108191537622.png" alt="hello-workd-wf"></p>
-]]></content>
-      <categories>
-        <category>Argo</category>
-        <category>Argo Workflow</category>
-      </categories>
-      <tags>
-        <tag>Argo</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Argo CD实战|安装部署</title>
     <url>/article/a25ee031/</url>
     <content><![CDATA[<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>　　Argo CD 是一个为 Kubernetes 而生的，遵循声明式 GitOps 理念的持续部署工具。Argo CD 可在 Git 存储库更改时自动同步和部署应用程序。</p>
@@ -165,6 +125,46 @@
       </tags>
   </entry>
   <entry>
+    <title>Argo Workflow实践|安装部署</title>
+    <url>/article/1e633edc/</url>
+    <content><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>　　Argo Workflow是一个云原生的工作流引擎，专注于编排并行任务。特点如下:</p>
+<ul>
+<li>使用K8S的CRD来定义工作流，本身也是CRD，可以使用yml直接定义</li>
+<li>工作流的每一步都是一个容器</li>
+<li>可以将多步骤工作流建模为一些列的任务，或者使用DAG(有向无环图)描述任务之间的关系</li>
+<li>可以短时间内轻松运行用于机器学习或数据处理的计算密集型作业</li>
+</ul>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><blockquote>
+<p>请先安装K8S,本例采用快捷方式安装<br>本文安装时间为202108018,如果采用官网文档推荐<a href="https://raw.githubusercontent.com/argoproj/argo-workflows/master/manifests/quick-start-postgres.yaml">资源文件</a>会出现浏览器访问报错但是命令行访问argo server正常的情况,<a href="https://github.com/argoproj/argo-workflows/issues/5573">相关issue</a><br>本例直接使用3.1.6版本资源文件，此版本已fix上述issue</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kubectl create ns argo</span><br><span class="line">kubectl apply -n argo -f https://github.com/argoproj/argo-workflows/releases/download/v3.1.6/quick-start-postgres.yaml</span><br></pre></td></tr></table></figure>
+<p>安装完成后，会有如下4个pod:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">NAME                                  READY   STATUS    RESTARTS   AGE</span><br><span class="line">argo-server-7949b545cc-szs9h          1/1     Running   0          3m49s</span><br><span class="line">minio-77d6796f8d-g6rsv                1/1     Running   0          3m49s</span><br><span class="line">postgres-546d9d68b-4xtrq              1/1     Running   0          3m49s</span><br><span class="line">workflow-controller-bd8bc5f86-kxsfv   1/1     Running   0          3m49s</span><br></pre></td></tr></table></figure>
+<p>其中:</p>
+<ul>
+<li>argo-server为argo服务端</li>
+<li>minio为制品仓库</li>
+<li>postgres为数据库</li>
+<li>workflow-controller为流程控制器</li>
+</ul>
+<h2 id="访问Argo-Workflows-UI"><a href="#访问Argo-Workflows-UI" class="headerlink" title="访问Argo Workflows UI"></a>访问Argo Workflows UI</h2><ol>
+<li>kubectl port-forward<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kubectl -n argo port-forward svc/argo-server 2746:2746</span><br></pre></td></tr></table></figure></li>
+<li>Expose a loadBalancer<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kubectl patch svc argo-server -n argo -p &#x27;&#123;&quot;spec&quot;: &#123;&quot;type&quot;: &quot;LoadBalancer&quot;&#125;&#125;&#x27;</span><br><span class="line"></span><br><span class="line">NAME                          TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE</span><br><span class="line">argo-server                   LoadBalancer   10.110.3.94     &lt;pending&gt;     2746:31603/TCP   12m</span><br><span class="line">minio                         ClusterIP      10.111.108.35   &lt;none&gt;        9000/TCP         12m</span><br><span class="line">postgres                      ClusterIP      10.97.250.221   &lt;none&gt;        5432/TCP         12m</span><br><span class="line">workflow-controller-metrics   ClusterIP      10.107.148.72   &lt;none&gt;        9090/TCP         12m</span><br></pre></td></tr></table></figure></li>
+<li>Ingress<br><code>示例略</code></li>
+</ol>
+<p><img src="https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202108191531513.png" alt="Argo Workflow UI"></p>
+<h2 id="示例验证"><a href="#示例验证" class="headerlink" title="示例验证"></a>示例验证</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&gt; argo submit -n argo --watch https://raw.githubusercontent.com/argoproj/argo-workflows/master/examples/hello-world.yaml</span><br><span class="line"></span><br><span class="line">apiVersion: argoproj.io/v1alpha1</span><br><span class="line">kind: Workflow</span><br><span class="line">metadata:</span><br><span class="line">  generateName: hello-world-</span><br><span class="line">  labels:</span><br><span class="line">    workflows.argoproj.io/archive-strategy: &quot;false&quot;</span><br><span class="line">  annotations:</span><br><span class="line">    workflows.argoproj.io/description: |</span><br><span class="line">      This is a simple hello world example.</span><br><span class="line">      You can also run it in Python: https://couler-proj.github.io/couler/examples/#hello-world</span><br><span class="line">spec:</span><br><span class="line">  entrypoint: whalesay</span><br><span class="line">  templates:</span><br><span class="line">  - name: whalesay</span><br><span class="line">    container:</span><br><span class="line">      image: docker/whalesay:latest</span><br><span class="line">      command: [cowsay]</span><br><span class="line">      args: [&quot;hello world&quot;]</span><br><span class="line"></span><br><span class="line">&gt; argo list -n argo</span><br><span class="line">NAME                STATUS      AGE   DURATION   PRIORITY</span><br><span class="line">hello-world-hphdr   Succeeded   43s   10s        0</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&gt; argo get -n argo @latest</span><br><span class="line">Name:                hello-world-hphdr</span><br><span class="line">Namespace:           argo-events</span><br><span class="line">ServiceAccount:      default</span><br><span class="line">Status:              Succeeded</span><br><span class="line">Conditions:</span><br><span class="line"> PodRunning          False</span><br><span class="line"> Completed           True</span><br><span class="line">Created:             Thu Aug 19 15:34:37 +0800 (1 minute ago)</span><br><span class="line">Started:             Thu Aug 19 15:34:37 +0800 (1 minute ago)</span><br><span class="line">Finished:            Thu Aug 19 15:34:47 +0800 (1 minute ago)</span><br><span class="line">Duration:            10 seconds</span><br><span class="line">Progress:            1/1</span><br><span class="line">ResourcesDuration:   7s*(1 cpu),7s*(100Mi memory)</span><br><span class="line"></span><br><span class="line">STEP                  TEMPLATE  PODNAME            DURATION  MESSAGE</span><br><span class="line"> ✔ hello-world-hphdr  whalesay  hello-world-hphdr  7s</span><br><span class="line"></span><br><span class="line">This workflow does not have security context set. You can run your workflow pods more securely by setting it.</span><br><span class="line">Learn more at https://argoproj.github.io/argo-workflows/workflow-pod-security-context/</span><br><span class="line"></span><br><span class="line">&gt; argo logs -n argo @latest</span><br><span class="line">hello-world-hphdr:  _____________</span><br><span class="line">hello-world-hphdr: &lt; hello world &gt;</span><br><span class="line">hello-world-hphdr:  -------------</span><br><span class="line">hello-world-hphdr:     \</span><br><span class="line">hello-world-hphdr:      \</span><br><span class="line">hello-world-hphdr:       \</span><br><span class="line">hello-world-hphdr:                     ##        .</span><br><span class="line">hello-world-hphdr:               ## ## ##       ==</span><br><span class="line">hello-world-hphdr:            ## ## ## ##      ===</span><br><span class="line">hello-world-hphdr:        /&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;___/ ===</span><br><span class="line">hello-world-hphdr:   ~~~ &#123;~~ ~~~~ ~~~ ~~~~ ~~ ~ /  ===- ~~~</span><br><span class="line">hello-world-hphdr:        \______ o          __/</span><br><span class="line">hello-world-hphdr:         \    \        __/</span><br><span class="line">hello-world-hphdr:           \____\______/</span><br></pre></td></tr></table></figure>
+<p><img src="https://raw.githubusercontent.com/zhousicong/imagehost/main/img/202108191537622.png" alt="hello-workd-wf"></p>
+]]></content>
+      <categories>
+        <category>Argo</category>
+        <category>Argo Workflow</category>
+      </categories>
+      <tags>
+        <tag>Argo</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>argo-combined-demo</title>
     <url>/article/612a1ead/</url>
     <content><![CDATA[<blockquote>
@@ -199,6 +199,75 @@
       <tags>
         <tag>监控</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>for循环中i++和++i的区别和效率</title>
+    <url>/article/2e389ba/</url>
+    <content><![CDATA[<h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>在看到一些书籍和视频中发现for循环里面有写++i,而不是i++</p>
+<span id="more"></span>
+
+<h1 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h1><p>for(A,B,C){<br>  D<br>}<br>执行顺序:</p>
+<ol>
+<li>进入循环执行A</li>
+<li>执行B</li>
+<li>执行D</li>
+<li>执行C</li>
+<li>再B，再D，再C直至退出循环</li>
+</ol>
+<p>即可知上述循环等同于:<br>for(A,B,){<br>  D<br>  C<br>}</p>
+<h1 id="区别"><a href="#区别" class="headerlink" title="区别"></a>区别</h1><p>i++</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 相当于</span></span><br><span class="line">i += <span class="number">1</span></span><br><span class="line"><span class="keyword">return</span> i</span><br></pre></td></tr></table></figure>
+
+<p>++i</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 相当于</span></span><br><span class="line">j = i</span><br><span class="line">i += <span class="number">1</span></span><br><span class="line"><span class="keyword">return</span> j</span><br></pre></td></tr></table></figure>
+
+<p>从上述差别中可以看到是有效率上面的差别</p>
+]]></content>
+      <categories>
+        <category>JS</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>关联数组详解</title>
+    <url>/article/485233ea/</url>
+    <content><![CDATA[<h1 id="关于数组"><a href="#关于数组" class="headerlink" title="关于数组"></a>关于数组</h1><p>　　请记住,数组是对象的特殊形式。使用方括号访问数组元素就像使用方括号访问对象的属性一样。JavaScript将指定的数字索引值转换成字符串—-索引值1变成”1”—-然后将其作为属性名来使用。<br>　　数组的特别之处在于，当使用小于2^32的非负整数作为属性名时数组会自动维护其length属性值。<br>　　注意，可以使用负数和非整数来索引数组。这种情况加，数值转换为字符串，字符串作为属性名来用。既然名字不是非负整数，它就只能当做常规的对象属性，而非数组的索引。</p>
+<p>–以上摘抄&lt;Javascript权威指南&gt;</p>
+<span id="more"></span>
+
+<h1 id="相关概念"><a href="#相关概念" class="headerlink" title="相关概念"></a>相关概念</h1><h2 id="稀松数组"><a href="#稀松数组" class="headerlink" title="稀松数组"></a>稀松数组</h2><p>稀松数组就是包含从0开始的不联系索引的数组。<br><code>简单来说就是数组元素的个数和数组长度不一致</code></p>
+<h2 id="密集数组"><a href="#密集数组" class="headerlink" title="密集数组"></a>密集数组</h2><h2 id="关联数组-数组下标为字符串"><a href="#关联数组-数组下标为字符串" class="headerlink" title="关联数组(数组下标为字符串)"></a>关联数组(数组下标为字符串)</h2><h2 id="关联数组-数组下标为数值-即通常情况下所说的数组"><a href="#关联数组-数组下标为数值-即通常情况下所说的数组" class="headerlink" title="关联数组(数组下标为数值,即通常情况下所说的数组)"></a>关联数组(数组下标为数值,即通常情况下所说的数组)</h2><h1 id="相关示例"><a href="#相关示例" class="headerlink" title="相关示例"></a>相关示例</h1><h2 id="如何创建数组"><a href="#如何创建数组" class="headerlink" title="如何创建数组"></a>如何创建数组</h2><h3 id="稀松数组-1"><a href="#稀松数组-1" class="headerlink" title="稀松数组"></a>稀松数组</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 第一种方式生成稀松数组</span></span><br><span class="line"><span class="keyword">let</span> a = <span class="keyword">new</span> <span class="built_in">Array</span>(<span class="number">3</span>) <span class="comment">// 数组没有元素，但是length为3</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 第二种方式生成稀松数组</span></span><br><span class="line"><span class="keyword">let</span> a =[]</span><br><span class="line">a[<span class="number">1000</span>] = <span class="number">1</span> <span class="comment">// 数组长度为1001,但是实际元素只有1个</span></span><br></pre></td></tr></table></figure>
+<p><strong>关于JavaScript权威指南p145的错误</strong></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> a1 = [,,,];<span class="comment">//数组是[undefined,undefined,undefined]  == &gt; 这里是 错误的，应该是都是empty</span></span><br><span class="line"><span class="keyword">var</span> a2 = <span class="keyword">new</span> <span class="built_in">Array</span>(<span class="number">3</span>);</span><br><span class="line"><span class="number">0</span> <span class="keyword">in</span> a1  <span class="comment">//true:a1在索引0处有一个元素。  ==&gt; 这里应该是false</span></span><br><span class="line"><span class="number">0</span> <span class="keyword">in</span> a2  <span class="comment">//false</span></span><br></pre></td></tr></table></figure>
+<h3 id="密集数组-1"><a href="#密集数组-1" class="headerlink" title="密集数组"></a>密集数组</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> a = <span class="built_in">Array</span>.apply(<span class="literal">null</span>,<span class="built_in">Array</span>(<span class="number">3</span>))</span><br></pre></td></tr></table></figure>
+<h3 id="关联数组"><a href="#关联数组" class="headerlink" title="关联数组"></a>关联数组</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> a =[]</span><br><span class="line">a[<span class="string">&quot;aa&quot;</span>] = <span class="string">&quot;aaa&quot;</span></span><br><span class="line">a[<span class="string">&quot;bb&quot;</span>] = <span class="string">&quot;bbb&quot;</span></span><br><span class="line"><span class="comment">// a =&gt; [aa:&quot;aaa&quot;,bb:&quot;bbb&quot;]</span></span><br><span class="line"><span class="comment">// a.length = 0</span></span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>JS</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>引用类型和基本类型</title>
+    <url>/article/d3b053f/</url>
+    <content><![CDATA[<h1 id="JS数据类型"><a href="#JS数据类型" class="headerlink" title="JS数据类型"></a>JS数据类型</h1><p>基本类型: Number Booleam String undefined null<br>引用类型: Object Function<br>基本类型的数据是放在栈内存中，而引用类型的数据是放在堆内存中</p>
+<span id="more"></span>
+
+<h1 id="JS传参差别-按值还是按址"><a href="#JS传参差别-按值还是按址" class="headerlink" title="JS传参差别 按值还是按址?"></a>JS传参差别 按值还是按址?</h1><h2 id="复制变量"><a href="#复制变量" class="headerlink" title="复制变量"></a>复制变量</h2><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 基本类型</span></span><br><span class="line"><span class="keyword">let</span> a = <span class="number">5</span></span><br><span class="line"><span class="keyword">let</span> b = a</span><br><span class="line">b = <span class="number">10</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;a&#125;</span> | <span class="subst">$&#123;b&#125;</span>`</span>) </span><br><span class="line"></span><br><span class="line"><span class="comment">// 引用类型</span></span><br><span class="line"><span class="keyword">let</span> obj1 = <span class="keyword">new</span> <span class="built_in">Object</span>()</span><br><span class="line">obj1.num = <span class="number">5</span></span><br><span class="line"><span class="keyword">let</span> obj2 = obj1</span><br><span class="line">obj2.mum =<span class="number">10</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;obj1.mun&#125;</span> | <span class="subst">$&#123;obj2.mum&#125;</span>`</span>)</span><br></pre></td></tr></table></figure>
+<p>基础类型由于是放在栈内存中，每个变量都有自己的值，所以其中一个值改变了，不影响另外一个。<br>引用类型其实就是在栈内存中存储了一个指针，这个指针指向的是存储地址，变量复制其实就是把这个地址复制给了另外一个变量，如果其中一个将这个对象修改了，那么另外一个也会改变。</p>
+<h2 id="函数传参"><a href="#函数传参" class="headerlink" title="函数传参"></a>函数传参</h2><blockquote>
+<p>到底是按值传参还是按址传参<br>示例1:</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">add</span>(<span class="params">num</span>)</span>&#123;</span><br><span class="line">  num += <span class="number">10</span></span><br><span class="line">  <span class="keyword">return</span> num</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">let</span> count = <span class="number">10</span></span><br><span class="line"><span class="keyword">let</span> result = add(count)</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;count&#125;</span> | <span class="subst">$&#123;result&#125;</span>`</span>)</span><br><span class="line"><span class="comment">// 20 | 30</span></span><br></pre></td></tr></table></figure>
+<p>按值传递,秒懂！</p>
+<p>示例2</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">setName</span>(<span class="params">obj</span>)</span>&#123;</span><br><span class="line">  obj.name = <span class="string">&#x27;bbb&#x27;</span></span><br><span class="line">  <span class="keyword">return</span> obj</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">let</span> person = <span class="keyword">new</span> <span class="built_in">Object</span>()</span><br><span class="line">person.name = <span class="string">&#x27;aaa&#x27;</span></span><br><span class="line"><span class="keyword">let</span> newPerson = setName(person)</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;person.name&#125;</span> | <span class="subst">$&#123;newPerson.name&#125;</span>`</span>)</span><br><span class="line"><span class="comment">// aaa | aaa</span></span><br></pre></td></tr></table></figure>
+<p>示例3</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">setName</span>(<span class="params">obj</span>)</span>&#123;</span><br><span class="line">  obj.name = <span class="string">&#x27;bbb&#x27;</span></span><br><span class="line">  <span class="keyword">let</span> obj = <span class="keyword">new</span> <span class="built_in">Object</span>()  <span class="comment">// 如果是按引用传递的,此处传参进来obj应该被重新引用新的内存单元</span></span><br><span class="line">  obj.name = <span class="string">&#x27;ccc&#x27;</span></span><br><span class="line">  <span class="keyword">return</span> obj</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">let</span> person = <span class="keyword">new</span> <span class="built_in">Object</span>()</span><br><span class="line">person.name = <span class="string">&#x27;aaa&#x27;</span></span><br><span class="line"><span class="keyword">let</span> newPerson = setName(person)</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;person.name&#125;</span> | <span class="subst">$&#123;newPerson.name&#125;</span>`</span>)</span><br><span class="line"><span class="comment">// aaa | ccc</span></span><br></pre></td></tr></table></figure>
+<p>// TODO  还是有点懵逼<br>// 还有new出来的实例</p>
+]]></content>
+      <categories>
+        <category>JS</category>
+      </categories>
   </entry>
   <entry>
     <title>Go|fmt使用</title>
@@ -394,75 +463,6 @@
       </tags>
   </entry>
   <entry>
-    <title>关联数组详解</title>
-    <url>/article/485233ea/</url>
-    <content><![CDATA[<h1 id="关于数组"><a href="#关于数组" class="headerlink" title="关于数组"></a>关于数组</h1><p>　　请记住,数组是对象的特殊形式。使用方括号访问数组元素就像使用方括号访问对象的属性一样。JavaScript将指定的数字索引值转换成字符串—-索引值1变成”1”—-然后将其作为属性名来使用。<br>　　数组的特别之处在于，当使用小于2^32的非负整数作为属性名时数组会自动维护其length属性值。<br>　　注意，可以使用负数和非整数来索引数组。这种情况加，数值转换为字符串，字符串作为属性名来用。既然名字不是非负整数，它就只能当做常规的对象属性，而非数组的索引。</p>
-<p>–以上摘抄&lt;Javascript权威指南&gt;</p>
-<span id="more"></span>
-
-<h1 id="相关概念"><a href="#相关概念" class="headerlink" title="相关概念"></a>相关概念</h1><h2 id="稀松数组"><a href="#稀松数组" class="headerlink" title="稀松数组"></a>稀松数组</h2><p>稀松数组就是包含从0开始的不联系索引的数组。<br><code>简单来说就是数组元素的个数和数组长度不一致</code></p>
-<h2 id="密集数组"><a href="#密集数组" class="headerlink" title="密集数组"></a>密集数组</h2><h2 id="关联数组-数组下标为字符串"><a href="#关联数组-数组下标为字符串" class="headerlink" title="关联数组(数组下标为字符串)"></a>关联数组(数组下标为字符串)</h2><h2 id="关联数组-数组下标为数值-即通常情况下所说的数组"><a href="#关联数组-数组下标为数值-即通常情况下所说的数组" class="headerlink" title="关联数组(数组下标为数值,即通常情况下所说的数组)"></a>关联数组(数组下标为数值,即通常情况下所说的数组)</h2><h1 id="相关示例"><a href="#相关示例" class="headerlink" title="相关示例"></a>相关示例</h1><h2 id="如何创建数组"><a href="#如何创建数组" class="headerlink" title="如何创建数组"></a>如何创建数组</h2><h3 id="稀松数组-1"><a href="#稀松数组-1" class="headerlink" title="稀松数组"></a>稀松数组</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 第一种方式生成稀松数组</span></span><br><span class="line"><span class="keyword">let</span> a = <span class="keyword">new</span> <span class="built_in">Array</span>(<span class="number">3</span>) <span class="comment">// 数组没有元素，但是length为3</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 第二种方式生成稀松数组</span></span><br><span class="line"><span class="keyword">let</span> a =[]</span><br><span class="line">a[<span class="number">1000</span>] = <span class="number">1</span> <span class="comment">// 数组长度为1001,但是实际元素只有1个</span></span><br></pre></td></tr></table></figure>
-<p><strong>关于JavaScript权威指南p145的错误</strong></p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> a1 = [,,,];<span class="comment">//数组是[undefined,undefined,undefined]  == &gt; 这里是 错误的，应该是都是empty</span></span><br><span class="line"><span class="keyword">var</span> a2 = <span class="keyword">new</span> <span class="built_in">Array</span>(<span class="number">3</span>);</span><br><span class="line"><span class="number">0</span> <span class="keyword">in</span> a1  <span class="comment">//true:a1在索引0处有一个元素。  ==&gt; 这里应该是false</span></span><br><span class="line"><span class="number">0</span> <span class="keyword">in</span> a2  <span class="comment">//false</span></span><br></pre></td></tr></table></figure>
-<h3 id="密集数组-1"><a href="#密集数组-1" class="headerlink" title="密集数组"></a>密集数组</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> a = <span class="built_in">Array</span>.apply(<span class="literal">null</span>,<span class="built_in">Array</span>(<span class="number">3</span>))</span><br></pre></td></tr></table></figure>
-<h3 id="关联数组"><a href="#关联数组" class="headerlink" title="关联数组"></a>关联数组</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> a =[]</span><br><span class="line">a[<span class="string">&quot;aa&quot;</span>] = <span class="string">&quot;aaa&quot;</span></span><br><span class="line">a[<span class="string">&quot;bb&quot;</span>] = <span class="string">&quot;bbb&quot;</span></span><br><span class="line"><span class="comment">// a =&gt; [aa:&quot;aaa&quot;,bb:&quot;bbb&quot;]</span></span><br><span class="line"><span class="comment">// a.length = 0</span></span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>JS</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>for循环中i++和++i的区别和效率</title>
-    <url>/article/2e389ba/</url>
-    <content><![CDATA[<h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>在看到一些书籍和视频中发现for循环里面有写++i,而不是i++</p>
-<span id="more"></span>
-
-<h1 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h1><p>for(A,B,C){<br>  D<br>}<br>执行顺序:</p>
-<ol>
-<li>进入循环执行A</li>
-<li>执行B</li>
-<li>执行D</li>
-<li>执行C</li>
-<li>再B，再D，再C直至退出循环</li>
-</ol>
-<p>即可知上述循环等同于:<br>for(A,B,){<br>  D<br>  C<br>}</p>
-<h1 id="区别"><a href="#区别" class="headerlink" title="区别"></a>区别</h1><p>i++</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 相当于</span></span><br><span class="line">i += <span class="number">1</span></span><br><span class="line"><span class="keyword">return</span> i</span><br></pre></td></tr></table></figure>
-
-<p>++i</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 相当于</span></span><br><span class="line">j = i</span><br><span class="line">i += <span class="number">1</span></span><br><span class="line"><span class="keyword">return</span> j</span><br></pre></td></tr></table></figure>
-
-<p>从上述差别中可以看到是有效率上面的差别</p>
-]]></content>
-      <categories>
-        <category>JS</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>引用类型和基本类型</title>
-    <url>/article/d3b053f/</url>
-    <content><![CDATA[<h1 id="JS数据类型"><a href="#JS数据类型" class="headerlink" title="JS数据类型"></a>JS数据类型</h1><p>基本类型: Number Booleam String undefined null<br>引用类型: Object Function<br>基本类型的数据是放在栈内存中，而引用类型的数据是放在堆内存中</p>
-<span id="more"></span>
-
-<h1 id="JS传参差别-按值还是按址"><a href="#JS传参差别-按值还是按址" class="headerlink" title="JS传参差别 按值还是按址?"></a>JS传参差别 按值还是按址?</h1><h2 id="复制变量"><a href="#复制变量" class="headerlink" title="复制变量"></a>复制变量</h2><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 基本类型</span></span><br><span class="line"><span class="keyword">let</span> a = <span class="number">5</span></span><br><span class="line"><span class="keyword">let</span> b = a</span><br><span class="line">b = <span class="number">10</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;a&#125;</span> | <span class="subst">$&#123;b&#125;</span>`</span>) </span><br><span class="line"></span><br><span class="line"><span class="comment">// 引用类型</span></span><br><span class="line"><span class="keyword">let</span> obj1 = <span class="keyword">new</span> <span class="built_in">Object</span>()</span><br><span class="line">obj1.num = <span class="number">5</span></span><br><span class="line"><span class="keyword">let</span> obj2 = obj1</span><br><span class="line">obj2.mum =<span class="number">10</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;obj1.mun&#125;</span> | <span class="subst">$&#123;obj2.mum&#125;</span>`</span>)</span><br></pre></td></tr></table></figure>
-<p>基础类型由于是放在栈内存中，每个变量都有自己的值，所以其中一个值改变了，不影响另外一个。<br>引用类型其实就是在栈内存中存储了一个指针，这个指针指向的是存储地址，变量复制其实就是把这个地址复制给了另外一个变量，如果其中一个将这个对象修改了，那么另外一个也会改变。</p>
-<h2 id="函数传参"><a href="#函数传参" class="headerlink" title="函数传参"></a>函数传参</h2><blockquote>
-<p>到底是按值传参还是按址传参<br>示例1:</p>
-</blockquote>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">add</span>(<span class="params">num</span>)</span>&#123;</span><br><span class="line">  num += <span class="number">10</span></span><br><span class="line">  <span class="keyword">return</span> num</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">let</span> count = <span class="number">10</span></span><br><span class="line"><span class="keyword">let</span> result = add(count)</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;count&#125;</span> | <span class="subst">$&#123;result&#125;</span>`</span>)</span><br><span class="line"><span class="comment">// 20 | 30</span></span><br></pre></td></tr></table></figure>
-<p>按值传递,秒懂！</p>
-<p>示例2</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">setName</span>(<span class="params">obj</span>)</span>&#123;</span><br><span class="line">  obj.name = <span class="string">&#x27;bbb&#x27;</span></span><br><span class="line">  <span class="keyword">return</span> obj</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">let</span> person = <span class="keyword">new</span> <span class="built_in">Object</span>()</span><br><span class="line">person.name = <span class="string">&#x27;aaa&#x27;</span></span><br><span class="line"><span class="keyword">let</span> newPerson = setName(person)</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;person.name&#125;</span> | <span class="subst">$&#123;newPerson.name&#125;</span>`</span>)</span><br><span class="line"><span class="comment">// aaa | aaa</span></span><br></pre></td></tr></table></figure>
-<p>示例3</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">setName</span>(<span class="params">obj</span>)</span>&#123;</span><br><span class="line">  obj.name = <span class="string">&#x27;bbb&#x27;</span></span><br><span class="line">  <span class="keyword">let</span> obj = <span class="keyword">new</span> <span class="built_in">Object</span>()  <span class="comment">// 如果是按引用传递的,此处传参进来obj应该被重新引用新的内存单元</span></span><br><span class="line">  obj.name = <span class="string">&#x27;ccc&#x27;</span></span><br><span class="line">  <span class="keyword">return</span> obj</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">let</span> person = <span class="keyword">new</span> <span class="built_in">Object</span>()</span><br><span class="line">person.name = <span class="string">&#x27;aaa&#x27;</span></span><br><span class="line"><span class="keyword">let</span> newPerson = setName(person)</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;person.name&#125;</span> | <span class="subst">$&#123;newPerson.name&#125;</span>`</span>)</span><br><span class="line"><span class="comment">// aaa | ccc</span></span><br></pre></td></tr></table></figure>
-<p>// TODO  还是有点懵逼<br>// 还有new出来的实例</p>
-]]></content>
-      <categories>
-        <category>JS</category>
-      </categories>
-  </entry>
-  <entry>
     <title>K8S|Secret详解</title>
     <url>/article/5a8a6c8d/</url>
     <content><![CDATA[<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>Secret解决了密码、token、秘钥等敏感数据的配置问题，而不需要把这些敏感数据暴露到镜像或者Pod Spec中。Secret可以以Volume或者环境变量的方式使用。</p>
@@ -569,6 +569,48 @@
 ]]></content>
       <categories>
         <category>SHELL</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>NODEJS|child_process模块</title>
+    <url>/article/1375a0ac/</url>
+    <content><![CDATA[<p>child_process.spawn() 方法异步衍生子进程，不会阻塞 Node.js 事件循环。 child_process.spawnSync() 函数以同步方式提供等效的功能，其会阻塞事件循环，直到衍生的进程退出或终止。</p>
+<p>为方便起见，child_process 模块提供了一些同步和异步方法替代 child_process.spawn() 和 child_process.spawnSync()。 这些替代方法中的每一个都是基于 child_process.spawn() 或 child_process.spawnSync() 实现。</p>
+<ul>
+<li>child_process.exec(): 衍生 shell 并在该 shell 中运行命令，完成后将 stdout 和 stderr 传给回调函数。</li>
+<li>child_process.execFile(): 与 child_process.exec() 类似，不同之处在于，默认情况下，它直接衍生命令，而不先衍生 shell。</li>
+<li>child_process.fork(): 衍生新的 Node.js 进程并使用建立的 IPC 通信通道（其允许在父子进程之间发送消息）调用指定的模块。</li>
+<li>child_process.execSync(): child_process.exec() 的同步版本，其将阻塞 Node.js 事件循环。</li>
+<li>child_process.execFileSync(): child_process.execFile() 的同步版本，其将阻塞 Node.js 事件循环。<br>对于某些情况，例如自动化 shell 脚本，同步的方法可能更方便。 但是，在许多情况下，由于在衍生的进程完成前会停止事件循环，同步方法会对性能产生重大影响。</li>
+</ul>
+<p>– 摘自<a href="http://nodejs.cn/api/child_process.html">NODEJS文档-child_process</a></p>
+<h3 id="spawn"><a href="#spawn" class="headerlink" title="spawn"></a>spawn</h3><p>spawn 方法会在新的流程智行外部应用，返回I/O的一个流接口。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> &#123;spawn&#125; = <span class="built_in">require</span>(<span class="string">&#x27;child_process&#x27;</span>)</span><br><span class="line"><span class="keyword">const</span> ls = spawn(<span class="string">&#x27;ls&#x27;</span>, [<span class="string">&#x27;-lh&#x27;</span>, <span class="string">&#x27;/usr&#x27;</span>]);</span><br><span class="line"></span><br><span class="line">ls.stdout.on(<span class="string">&#x27;data&#x27;</span>, <span class="function">(<span class="params">data</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">`stdout: <span class="subst">$&#123;data&#125;</span>`</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">ls.stderr.on(<span class="string">&#x27;data&#x27;</span>, <span class="function">(<span class="params">data</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">console</span>.error(<span class="string">`stderr: <span class="subst">$&#123;data&#125;</span>`</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">ls.on(<span class="string">&#x27;close&#x27;</span>, <span class="function">(<span class="params">code</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">`child process exited with code <span class="subst">$&#123;code&#125;</span>`</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> ps = spawn(<span class="string">&#x27;ps&#x27;</span>, [<span class="string">&#x27;ax&#x27;</span>]);</span><br><span class="line"><span class="keyword">const</span> grep = spawn(<span class="string">&#x27;grep&#x27;</span>, [<span class="string">&#x27;ssh&#x27;</span>]);</span><br><span class="line"></span><br><span class="line">ps.stdout.on(<span class="string">&#x27;data&#x27;</span>, <span class="function">(<span class="params">data</span>) =&gt;</span> &#123;</span><br><span class="line">  grep.stdin.write(data);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">ps.stderr.on(<span class="string">&#x27;data&#x27;</span>, <span class="function">(<span class="params">data</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">console</span>.error(<span class="string">`ps stderr: <span class="subst">$&#123;data&#125;</span>`</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">ps.on(<span class="string">&#x27;close&#x27;</span>, <span class="function">(<span class="params">code</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (code !== <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">`ps process exited with code <span class="subst">$&#123;code&#125;</span>`</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  grep.stdin.end();</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">grep.stdout.on(<span class="string">&#x27;data&#x27;</span>, <span class="function">(<span class="params">data</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(data.toString());</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">grep.stderr.on(<span class="string">&#x27;data&#x27;</span>, <span class="function">(<span class="params">data</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">console</span>.error(<span class="string">`grep stderr: <span class="subst">$&#123;data&#125;</span>`</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">grep.on(<span class="string">&#x27;close&#x27;</span>, <span class="function">(<span class="params">code</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (code !== <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">`grep process exited with code <span class="subst">$&#123;code&#125;</span>`</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="exec"><a href="#exec" class="headerlink" title="exec"></a>exec</h3><p>exec 方法会在衍生的shell中执行command,缓冲任何生成的输出。<br><code>exec只有利用shell功能才能使用</code></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> &#123; exec &#125; = <span class="built_in">require</span>(<span class="string">&#x27;child_process&#x27;</span>);</span><br><span class="line">exec(<span class="string">&#x27;cat *.js missing_file | wc -l&#x27;</span>, <span class="function">(<span class="params">error, stdout, stderr</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (error) &#123;</span><br><span class="line">    <span class="built_in">console</span>.error(<span class="string">`exec error: <span class="subst">$&#123;error&#125;</span>`</span>);</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">`stdout: <span class="subst">$&#123;stdout&#125;</span>`</span>);</span><br><span class="line">  <span class="built_in">console</span>.error(<span class="string">`stderr: <span class="subst">$&#123;stderr&#125;</span>`</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="execFile"><a href="#execFile" class="headerlink" title="execFile"></a>execFile</h3><p>execFile 方法他不会默认衍生shell,而是指定可执行文件直接作为新进程衍生。但是由于未衍生shell，因此不支持I/O重定向和文件通配等行为。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> &#123; execFile &#125; = <span class="built_in">require</span>(<span class="string">&#x27;child_process&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> child = execFile(<span class="string">&#x27;node&#x27;</span>, [<span class="string">&#x27;--version&#x27;</span>], <span class="function">(<span class="params">error, stdout, stderr</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (error) &#123;</span><br><span class="line">    <span class="keyword">throw</span> error;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">console</span>.log(stdout);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="fork"><a href="#fork" class="headerlink" title="fork"></a>fork</h3><p>fork 方法是spawn的特殊情况，专门用于衍生新的nodejs进程，返回一个child_process对象。</p>
+]]></content>
+      <categories>
+        <category>NODEJS</category>
+      </categories>
+      <tags>
+        <tag>NODEJS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>通过nodejs查看http的STAUS_CODE</title>
+    <url>/article/9a2f555f/</url>
+    <content><![CDATA[<p>HTTP核心模块是Node.js网络的关键模块,该模块提供了一些属性、方法以及类。<br><code>http.STATUS_CODES此属性列出了所有的HTTP状态代码以及其描述</code></p>
+<span id="more"></span>
+
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">❯ node</span><br><span class="line">Welcome to Node.js v14.17.3.</span><br><span class="line">Type &quot;.help&quot; for more information.</span><br><span class="line"><span class="meta">&gt;</span><span class="bash"> require(<span class="string">&#x27;http&#x27;</span>).STATUS_CODES</span></span><br><span class="line">&#123;</span><br><span class="line">  &#x27;100&#x27;: &#x27;Continue&#x27;,</span><br><span class="line">  &#x27;101&#x27;: &#x27;Switching Protocols&#x27;,</span><br><span class="line">  &#x27;102&#x27;: &#x27;Processing&#x27;,</span><br><span class="line">  &#x27;103&#x27;: &#x27;Early Hints&#x27;,</span><br><span class="line">  &#x27;200&#x27;: &#x27;OK&#x27;,</span><br><span class="line">  &#x27;201&#x27;: &#x27;Created&#x27;,</span><br><span class="line">  &#x27;202&#x27;: &#x27;Accepted&#x27;,</span><br><span class="line">  &#x27;203&#x27;: &#x27;Non-Authoritative Information&#x27;,</span><br><span class="line">  &#x27;204&#x27;: &#x27;No Content&#x27;,</span><br><span class="line">  &#x27;205&#x27;: &#x27;Reset Content&#x27;,</span><br><span class="line">  &#x27;206&#x27;: &#x27;Partial Content&#x27;,</span><br><span class="line">  &#x27;207&#x27;: &#x27;Multi-Status&#x27;,</span><br><span class="line">  &#x27;208&#x27;: &#x27;Already Reported&#x27;,</span><br><span class="line">  &#x27;226&#x27;: &#x27;IM Used&#x27;,</span><br><span class="line">  &#x27;300&#x27;: &#x27;Multiple Choices&#x27;,</span><br><span class="line">  &#x27;301&#x27;: &#x27;Moved Permanently&#x27;,</span><br><span class="line">  &#x27;302&#x27;: &#x27;Found&#x27;,</span><br><span class="line">  &#x27;303&#x27;: &#x27;See Other&#x27;,</span><br><span class="line">  &#x27;304&#x27;: &#x27;Not Modified&#x27;,</span><br><span class="line">  &#x27;305&#x27;: &#x27;Use Proxy&#x27;,</span><br><span class="line">  &#x27;307&#x27;: &#x27;Temporary Redirect&#x27;,</span><br><span class="line">  &#x27;308&#x27;: &#x27;Permanent Redirect&#x27;,</span><br><span class="line">  &#x27;400&#x27;: &#x27;Bad Request&#x27;,</span><br><span class="line">  &#x27;401&#x27;: &#x27;Unauthorized&#x27;,</span><br><span class="line">  &#x27;402&#x27;: &#x27;Payment Required&#x27;,</span><br><span class="line">  &#x27;403&#x27;: &#x27;Forbidden&#x27;,</span><br><span class="line">  &#x27;404&#x27;: &#x27;Not Found&#x27;,</span><br><span class="line">  &#x27;405&#x27;: &#x27;Method Not Allowed&#x27;,</span><br><span class="line">  &#x27;406&#x27;: &#x27;Not Acceptable&#x27;,</span><br><span class="line">  &#x27;407&#x27;: &#x27;Proxy Authentication Required&#x27;,</span><br><span class="line">  &#x27;408&#x27;: &#x27;Request Timeout&#x27;,</span><br><span class="line">  &#x27;409&#x27;: &#x27;Conflict&#x27;,</span><br><span class="line">  &#x27;410&#x27;: &#x27;Gone&#x27;,</span><br><span class="line">  &#x27;411&#x27;: &#x27;Length Required&#x27;,</span><br><span class="line">  &#x27;412&#x27;: &#x27;Precondition Failed&#x27;,</span><br><span class="line">  &#x27;413&#x27;: &#x27;Payload Too Large&#x27;,</span><br><span class="line">  &#x27;414&#x27;: &#x27;URI Too Long&#x27;,</span><br><span class="line">  &#x27;415&#x27;: &#x27;Unsupported Media Type&#x27;,</span><br><span class="line">  &#x27;416&#x27;: &#x27;Range Not Satisfiable&#x27;,</span><br><span class="line">  &#x27;417&#x27;: &#x27;Expectation Failed&#x27;,</span><br><span class="line">  &#x27;418&#x27;: &quot;I&#x27;m a Teapot&quot;,</span><br><span class="line">  &#x27;421&#x27;: &#x27;Misdirected Request&#x27;,</span><br><span class="line">  &#x27;422&#x27;: &#x27;Unprocessable Entity&#x27;,</span><br><span class="line">  &#x27;423&#x27;: &#x27;Locked&#x27;,</span><br><span class="line">  &#x27;424&#x27;: &#x27;Failed Dependency&#x27;,</span><br><span class="line">  &#x27;425&#x27;: &#x27;Too Early&#x27;,</span><br><span class="line">  &#x27;426&#x27;: &#x27;Upgrade Required&#x27;,</span><br><span class="line">  &#x27;428&#x27;: &#x27;Precondition Required&#x27;,</span><br><span class="line">  &#x27;429&#x27;: &#x27;Too Many Requests&#x27;,</span><br><span class="line">  &#x27;431&#x27;: &#x27;Request Header Fields Too Large&#x27;,</span><br><span class="line">  &#x27;451&#x27;: &#x27;Unavailable For Legal Reasons&#x27;,</span><br><span class="line">  &#x27;500&#x27;: &#x27;Internal Server Error&#x27;,</span><br><span class="line">  &#x27;501&#x27;: &#x27;Not Implemented&#x27;,</span><br><span class="line">  &#x27;502&#x27;: &#x27;Bad Gateway&#x27;,</span><br><span class="line">  &#x27;503&#x27;: &#x27;Service Unavailable&#x27;,</span><br><span class="line">  &#x27;504&#x27;: &#x27;Gateway Timeout&#x27;,</span><br><span class="line">  &#x27;505&#x27;: &#x27;HTTP Version Not Supported&#x27;,</span><br><span class="line">  &#x27;506&#x27;: &#x27;Variant Also Negotiates&#x27;,</span><br><span class="line">  &#x27;507&#x27;: &#x27;Insufficient Storage&#x27;,</span><br><span class="line">  &#x27;508&#x27;: &#x27;Loop Detected&#x27;,</span><br><span class="line">  &#x27;509&#x27;: &#x27;Bandwidth Limit Exceeded&#x27;,</span><br><span class="line">  &#x27;510&#x27;: &#x27;Not Extended&#x27;,</span><br><span class="line">  &#x27;511&#x27;: &#x27;Network Authentication Required&#x27;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>NODEJS</category>
       </categories>
   </entry>
   <entry>
@@ -724,48 +766,6 @@
 ]]></content>
       <categories>
         <category>博客</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>NODEJS|child_process模块</title>
-    <url>/article/1375a0ac/</url>
-    <content><![CDATA[<p>child_process.spawn() 方法异步衍生子进程，不会阻塞 Node.js 事件循环。 child_process.spawnSync() 函数以同步方式提供等效的功能，其会阻塞事件循环，直到衍生的进程退出或终止。</p>
-<p>为方便起见，child_process 模块提供了一些同步和异步方法替代 child_process.spawn() 和 child_process.spawnSync()。 这些替代方法中的每一个都是基于 child_process.spawn() 或 child_process.spawnSync() 实现。</p>
-<ul>
-<li>child_process.exec(): 衍生 shell 并在该 shell 中运行命令，完成后将 stdout 和 stderr 传给回调函数。</li>
-<li>child_process.execFile(): 与 child_process.exec() 类似，不同之处在于，默认情况下，它直接衍生命令，而不先衍生 shell。</li>
-<li>child_process.fork(): 衍生新的 Node.js 进程并使用建立的 IPC 通信通道（其允许在父子进程之间发送消息）调用指定的模块。</li>
-<li>child_process.execSync(): child_process.exec() 的同步版本，其将阻塞 Node.js 事件循环。</li>
-<li>child_process.execFileSync(): child_process.execFile() 的同步版本，其将阻塞 Node.js 事件循环。<br>对于某些情况，例如自动化 shell 脚本，同步的方法可能更方便。 但是，在许多情况下，由于在衍生的进程完成前会停止事件循环，同步方法会对性能产生重大影响。</li>
-</ul>
-<p>– 摘自<a href="http://nodejs.cn/api/child_process.html">NODEJS文档-child_process</a></p>
-<h3 id="spawn"><a href="#spawn" class="headerlink" title="spawn"></a>spawn</h3><p>spawn 方法会在新的流程智行外部应用，返回I/O的一个流接口。</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> &#123;spawn&#125; = <span class="built_in">require</span>(<span class="string">&#x27;child_process&#x27;</span>)</span><br><span class="line"><span class="keyword">const</span> ls = spawn(<span class="string">&#x27;ls&#x27;</span>, [<span class="string">&#x27;-lh&#x27;</span>, <span class="string">&#x27;/usr&#x27;</span>]);</span><br><span class="line"></span><br><span class="line">ls.stdout.on(<span class="string">&#x27;data&#x27;</span>, <span class="function">(<span class="params">data</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">`stdout: <span class="subst">$&#123;data&#125;</span>`</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">ls.stderr.on(<span class="string">&#x27;data&#x27;</span>, <span class="function">(<span class="params">data</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">console</span>.error(<span class="string">`stderr: <span class="subst">$&#123;data&#125;</span>`</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">ls.on(<span class="string">&#x27;close&#x27;</span>, <span class="function">(<span class="params">code</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">`child process exited with code <span class="subst">$&#123;code&#125;</span>`</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> ps = spawn(<span class="string">&#x27;ps&#x27;</span>, [<span class="string">&#x27;ax&#x27;</span>]);</span><br><span class="line"><span class="keyword">const</span> grep = spawn(<span class="string">&#x27;grep&#x27;</span>, [<span class="string">&#x27;ssh&#x27;</span>]);</span><br><span class="line"></span><br><span class="line">ps.stdout.on(<span class="string">&#x27;data&#x27;</span>, <span class="function">(<span class="params">data</span>) =&gt;</span> &#123;</span><br><span class="line">  grep.stdin.write(data);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">ps.stderr.on(<span class="string">&#x27;data&#x27;</span>, <span class="function">(<span class="params">data</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">console</span>.error(<span class="string">`ps stderr: <span class="subst">$&#123;data&#125;</span>`</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">ps.on(<span class="string">&#x27;close&#x27;</span>, <span class="function">(<span class="params">code</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (code !== <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">`ps process exited with code <span class="subst">$&#123;code&#125;</span>`</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  grep.stdin.end();</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">grep.stdout.on(<span class="string">&#x27;data&#x27;</span>, <span class="function">(<span class="params">data</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(data.toString());</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">grep.stderr.on(<span class="string">&#x27;data&#x27;</span>, <span class="function">(<span class="params">data</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">console</span>.error(<span class="string">`grep stderr: <span class="subst">$&#123;data&#125;</span>`</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">grep.on(<span class="string">&#x27;close&#x27;</span>, <span class="function">(<span class="params">code</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (code !== <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">`grep process exited with code <span class="subst">$&#123;code&#125;</span>`</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
-
-<h3 id="exec"><a href="#exec" class="headerlink" title="exec"></a>exec</h3><p>exec 方法会在衍生的shell中执行command,缓冲任何生成的输出。<br><code>exec只有利用shell功能才能使用</code></p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> &#123; exec &#125; = <span class="built_in">require</span>(<span class="string">&#x27;child_process&#x27;</span>);</span><br><span class="line">exec(<span class="string">&#x27;cat *.js missing_file | wc -l&#x27;</span>, <span class="function">(<span class="params">error, stdout, stderr</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (error) &#123;</span><br><span class="line">    <span class="built_in">console</span>.error(<span class="string">`exec error: <span class="subst">$&#123;error&#125;</span>`</span>);</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">`stdout: <span class="subst">$&#123;stdout&#125;</span>`</span>);</span><br><span class="line">  <span class="built_in">console</span>.error(<span class="string">`stderr: <span class="subst">$&#123;stderr&#125;</span>`</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
-
-<h3 id="execFile"><a href="#execFile" class="headerlink" title="execFile"></a>execFile</h3><p>execFile 方法他不会默认衍生shell,而是指定可执行文件直接作为新进程衍生。但是由于未衍生shell，因此不支持I/O重定向和文件通配等行为。</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> &#123; execFile &#125; = <span class="built_in">require</span>(<span class="string">&#x27;child_process&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> child = execFile(<span class="string">&#x27;node&#x27;</span>, [<span class="string">&#x27;--version&#x27;</span>], <span class="function">(<span class="params">error, stdout, stderr</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (error) &#123;</span><br><span class="line">    <span class="keyword">throw</span> error;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">console</span>.log(stdout);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
-
-<h3 id="fork"><a href="#fork" class="headerlink" title="fork"></a>fork</h3><p>fork 方法是spawn的特殊情况，专门用于衍生新的nodejs进程，返回一个child_process对象。</p>
-]]></content>
-      <categories>
-        <category>NODEJS</category>
-      </categories>
-      <tags>
-        <tag>NODEJS</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>通过nodejs查看http的STAUS_CODE</title>
-    <url>/article/9a2f555f/</url>
-    <content><![CDATA[<p>HTTP核心模块是Node.js网络的关键模块,该模块提供了一些属性、方法以及类。<br><code>http.STATUS_CODES此属性列出了所有的HTTP状态代码以及其描述</code></p>
-<span id="more"></span>
-
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">❯ node</span><br><span class="line">Welcome to Node.js v14.17.3.</span><br><span class="line">Type &quot;.help&quot; for more information.</span><br><span class="line"><span class="meta">&gt;</span><span class="bash"> require(<span class="string">&#x27;http&#x27;</span>).STATUS_CODES</span></span><br><span class="line">&#123;</span><br><span class="line">  &#x27;100&#x27;: &#x27;Continue&#x27;,</span><br><span class="line">  &#x27;101&#x27;: &#x27;Switching Protocols&#x27;,</span><br><span class="line">  &#x27;102&#x27;: &#x27;Processing&#x27;,</span><br><span class="line">  &#x27;103&#x27;: &#x27;Early Hints&#x27;,</span><br><span class="line">  &#x27;200&#x27;: &#x27;OK&#x27;,</span><br><span class="line">  &#x27;201&#x27;: &#x27;Created&#x27;,</span><br><span class="line">  &#x27;202&#x27;: &#x27;Accepted&#x27;,</span><br><span class="line">  &#x27;203&#x27;: &#x27;Non-Authoritative Information&#x27;,</span><br><span class="line">  &#x27;204&#x27;: &#x27;No Content&#x27;,</span><br><span class="line">  &#x27;205&#x27;: &#x27;Reset Content&#x27;,</span><br><span class="line">  &#x27;206&#x27;: &#x27;Partial Content&#x27;,</span><br><span class="line">  &#x27;207&#x27;: &#x27;Multi-Status&#x27;,</span><br><span class="line">  &#x27;208&#x27;: &#x27;Already Reported&#x27;,</span><br><span class="line">  &#x27;226&#x27;: &#x27;IM Used&#x27;,</span><br><span class="line">  &#x27;300&#x27;: &#x27;Multiple Choices&#x27;,</span><br><span class="line">  &#x27;301&#x27;: &#x27;Moved Permanently&#x27;,</span><br><span class="line">  &#x27;302&#x27;: &#x27;Found&#x27;,</span><br><span class="line">  &#x27;303&#x27;: &#x27;See Other&#x27;,</span><br><span class="line">  &#x27;304&#x27;: &#x27;Not Modified&#x27;,</span><br><span class="line">  &#x27;305&#x27;: &#x27;Use Proxy&#x27;,</span><br><span class="line">  &#x27;307&#x27;: &#x27;Temporary Redirect&#x27;,</span><br><span class="line">  &#x27;308&#x27;: &#x27;Permanent Redirect&#x27;,</span><br><span class="line">  &#x27;400&#x27;: &#x27;Bad Request&#x27;,</span><br><span class="line">  &#x27;401&#x27;: &#x27;Unauthorized&#x27;,</span><br><span class="line">  &#x27;402&#x27;: &#x27;Payment Required&#x27;,</span><br><span class="line">  &#x27;403&#x27;: &#x27;Forbidden&#x27;,</span><br><span class="line">  &#x27;404&#x27;: &#x27;Not Found&#x27;,</span><br><span class="line">  &#x27;405&#x27;: &#x27;Method Not Allowed&#x27;,</span><br><span class="line">  &#x27;406&#x27;: &#x27;Not Acceptable&#x27;,</span><br><span class="line">  &#x27;407&#x27;: &#x27;Proxy Authentication Required&#x27;,</span><br><span class="line">  &#x27;408&#x27;: &#x27;Request Timeout&#x27;,</span><br><span class="line">  &#x27;409&#x27;: &#x27;Conflict&#x27;,</span><br><span class="line">  &#x27;410&#x27;: &#x27;Gone&#x27;,</span><br><span class="line">  &#x27;411&#x27;: &#x27;Length Required&#x27;,</span><br><span class="line">  &#x27;412&#x27;: &#x27;Precondition Failed&#x27;,</span><br><span class="line">  &#x27;413&#x27;: &#x27;Payload Too Large&#x27;,</span><br><span class="line">  &#x27;414&#x27;: &#x27;URI Too Long&#x27;,</span><br><span class="line">  &#x27;415&#x27;: &#x27;Unsupported Media Type&#x27;,</span><br><span class="line">  &#x27;416&#x27;: &#x27;Range Not Satisfiable&#x27;,</span><br><span class="line">  &#x27;417&#x27;: &#x27;Expectation Failed&#x27;,</span><br><span class="line">  &#x27;418&#x27;: &quot;I&#x27;m a Teapot&quot;,</span><br><span class="line">  &#x27;421&#x27;: &#x27;Misdirected Request&#x27;,</span><br><span class="line">  &#x27;422&#x27;: &#x27;Unprocessable Entity&#x27;,</span><br><span class="line">  &#x27;423&#x27;: &#x27;Locked&#x27;,</span><br><span class="line">  &#x27;424&#x27;: &#x27;Failed Dependency&#x27;,</span><br><span class="line">  &#x27;425&#x27;: &#x27;Too Early&#x27;,</span><br><span class="line">  &#x27;426&#x27;: &#x27;Upgrade Required&#x27;,</span><br><span class="line">  &#x27;428&#x27;: &#x27;Precondition Required&#x27;,</span><br><span class="line">  &#x27;429&#x27;: &#x27;Too Many Requests&#x27;,</span><br><span class="line">  &#x27;431&#x27;: &#x27;Request Header Fields Too Large&#x27;,</span><br><span class="line">  &#x27;451&#x27;: &#x27;Unavailable For Legal Reasons&#x27;,</span><br><span class="line">  &#x27;500&#x27;: &#x27;Internal Server Error&#x27;,</span><br><span class="line">  &#x27;501&#x27;: &#x27;Not Implemented&#x27;,</span><br><span class="line">  &#x27;502&#x27;: &#x27;Bad Gateway&#x27;,</span><br><span class="line">  &#x27;503&#x27;: &#x27;Service Unavailable&#x27;,</span><br><span class="line">  &#x27;504&#x27;: &#x27;Gateway Timeout&#x27;,</span><br><span class="line">  &#x27;505&#x27;: &#x27;HTTP Version Not Supported&#x27;,</span><br><span class="line">  &#x27;506&#x27;: &#x27;Variant Also Negotiates&#x27;,</span><br><span class="line">  &#x27;507&#x27;: &#x27;Insufficient Storage&#x27;,</span><br><span class="line">  &#x27;508&#x27;: &#x27;Loop Detected&#x27;,</span><br><span class="line">  &#x27;509&#x27;: &#x27;Bandwidth Limit Exceeded&#x27;,</span><br><span class="line">  &#x27;510&#x27;: &#x27;Not Extended&#x27;,</span><br><span class="line">  &#x27;511&#x27;: &#x27;Network Authentication Required&#x27;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>NODEJS</category>
       </categories>
   </entry>
 </search>
