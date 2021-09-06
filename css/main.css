@@ -1755,6 +1755,7 @@ pre code {
   text-align: center;
 }
 .use-motion .post-block,
+.use-motion .post-list,
 .use-motion .pagination,
 .use-motion .comments {
   visibility: hidden;
@@ -2804,6 +2805,7 @@ mark.search-keyword {
 }
 .main-inner > .sub-menu,
 .main-inner > .post-block,
+.main-inner > .post-list,
 .main-inner > .tabs-comment,
 .main-inner > .comments,
 .main-inner > .pagination {
@@ -2813,6 +2815,7 @@ mark.search-keyword {
 }
 .main-inner > .sub-menu:not(:first-child):not(.sub-menu),
 .main-inner > .post-block:not(:first-child):not(.sub-menu),
+.main-inner > .post-list:not(:first-child):not(.sub-menu),
 .main-inner > .tabs-comment:not(:first-child):not(.sub-menu),
 .main-inner > .comments:not(:first-child):not(.sub-menu),
 .main-inner > .pagination:not(:first-child):not(.sub-menu) {
@@ -2823,6 +2826,7 @@ mark.search-keyword {
 @media (min-width: 768px) and (max-width: 991px) {
   .main-inner > .sub-menu:not(:first-child):not(.sub-menu),
   .main-inner > .post-block:not(:first-child):not(.sub-menu),
+  .main-inner > .post-list:not(:first-child):not(.sub-menu),
   .main-inner > .tabs-comment:not(:first-child):not(.sub-menu),
   .main-inner > .comments:not(:first-child):not(.sub-menu),
   .main-inner > .pagination:not(:first-child):not(.sub-menu) {
@@ -2832,6 +2836,7 @@ mark.search-keyword {
 @media (max-width: 767px) {
   .main-inner > .sub-menu:not(:first-child):not(.sub-menu),
   .main-inner > .post-block:not(:first-child):not(.sub-menu),
+  .main-inner > .post-list:not(:first-child):not(.sub-menu),
   .main-inner > .tabs-comment:not(:first-child):not(.sub-menu),
   .main-inner > .comments:not(:first-child):not(.sub-menu),
   .main-inner > .pagination:not(:first-child):not(.sub-menu) {
@@ -2883,4 +2888,14 @@ mark.search-keyword {
   .comments {
     padding: 10px 12px;
   }
+}
+.post-list {
+  padding: 12px;
+}
+.post-list .post-list-title {
+  font-size: large;
+  font-family: monispace;
+}
+.post-list:first-of-type {
+  margin-top: 12px;
 }
