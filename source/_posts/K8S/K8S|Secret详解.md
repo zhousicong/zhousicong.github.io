@@ -1,13 +1,13 @@
 ---
 title: K8S|Secret详解
-abbrlink: 5a8a6c8d
-date: 2021-08-20 15:26:42
+abbrlink: 87d3e229
 description: Secret概述与类型说明，并详解常用Secret示例
 categories:
-- K8S
-- Secret
+  - K8S
+  - Secret
 tags:
-- K8S
+  - K8S
+date: 2021-08-20 15:26:42
 ---
 
 ## 介绍
